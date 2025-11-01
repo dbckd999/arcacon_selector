@@ -1,8 +1,6 @@
 'use strict';
 
-import './conMod.css';
 import Dexie from 'dexie';
-
 const db = new Dexie('Arcacons');
 // 인덱싱되는 속성 정의
 db.version(1).stores({ emoticon: '&conId, [packageId+conOrder], *tags' });
@@ -68,7 +66,7 @@ function showConPackage(packageId, pakcageName) {
   images_container.setAttribute('class', 'images-container');
 
   ground.append(thumbnail_wrapper);
-  ground.append(document.createElement('hr'));
+  ground.append(document.createElement('sl-divider'));
 
   thumbnail_wrapper.append(images_container);
 
@@ -117,6 +115,33 @@ function conListup() {
     }
   }
 }
+
+// shoelace --------------------------
+document.getElementById('test').onclick(()=>{
+  notify('test', 'danger');
+});
+function escapeHtml(html) {
+  const div = document.createElement('div');
+  div.textContent = html;
+  return div.innerHTML;
+}
+
+function notify(message, variant = 'primary', icon = 'info-circle', duration = 3000) {
+  const alert = Object.assign(document.createElement('sl-alert'), {
+    variant,
+    closable: true,
+    duration: duration,
+    innerHTML: `
+        <sl-icon name="${icon}" slot="icon"></sl-icon>
+        ${escapeHtml(message)}
+      `
+  });
+
+  document.body.append(alert);
+  return alert.toast();
+}
+
+// shoelace --------------------------
 
 document.getElementById('comboCon').addEventListener('click', (e) => {
   comboState = !comboState;
@@ -182,7 +207,7 @@ document.getElementById('resourceCollect').addEventListener('click', () => {
     .then((res) => {
       console.log(res);
       if (res.status !== 'ok') {
-        alert('데이터 수집 실패');
+        notify('데이터 수집 실패', 'danger');
       } else {
         Promise.all(
           res.data.map(async (item) => {
@@ -194,10 +219,10 @@ document.getElementById('resourceCollect').addEventListener('click', () => {
           db.emoticon
             .bulkPut(results)
             .then(() => {
-              alert('데이터 수집 완료. 확장 프로그램을 닫고 열어주세요.');
+              notify('데이터 수집 완료. 확장 프로그램을 닫고 열어주세요.');
             })
             .catch((err) => {
-              alert(err);
+              notify(err, 'danger');
             });
         });
       }
