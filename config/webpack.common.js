@@ -56,6 +56,10 @@ const common = {
           from: '**/*',
           context: 'public',
         },
+        {
+          from: 'node_modules/@shoelace-style/shoelace/cdn',
+          to: 'shoelace',
+        },
       ],
     }),
     // Extract CSS into separate files

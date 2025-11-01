@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Arcacon_selector",
-  "version": "0.1.0",
+  "version": "1.0",
   "description": "My Chrome Extension",
   "icons": {
     "16": "icons/icon_16.png",
@@ -9,25 +9,34 @@
     "48": "icons/icon_48.png",
     "128": "icons/icon_128.png"
   },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "serviceWorker.js"
   },
   "action": {
-    "default_title": "Arcacon_selector",
-    "default_popup": "popup.html"
+    "default_title": "Arcacon_selector"
   },
-  "permissions": [
-    "storage"
+  "permissions": ["tabs", "storage", "identity", "sidePanel"],
+  "host_permissions": [
+    "https://auth.dbckd999.xyz/*",
+    "https://api.dbckd999.xyz/*",
+    "https://ac-p1.namu.la/"
   ],
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "run_at": "document_idle",
-      "js": [
-        "contentScript.js"
-      ]
+      "matches": ["https://arca.live/b/*/*"],
+      "js": ["boardContentScript.js"]
+    },
+    {
+      "matches": ["https://arca.live/e/*"],
+      "css": ["popup.css"],
+      "js": ["saleContentScript.js"]
+    },
+    {
+      "matches": ["https://arca.live/settings/emoticons"],
+      "js": ["orderContentScript.js"]
     }
   ]
 }

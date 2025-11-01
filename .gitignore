@@ -13,3 +13,6 @@ npm-debug.log*
 
 # packed files
 /release
+
+# 커스텀
+memo.txt

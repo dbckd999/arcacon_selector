@@ -20,5 +20,10 @@
     "webpack": "^5.102.1",
     "webpack-cli": "^4.10.0",
     "webpack-merge": "^5.10.0"
+  },
+  "dependencies": {
+    "@shoelace-style/shoelace": "^2.20.1",
+    "dexie": "^4.2.1",
+    "glob": "^11.0.3"
   }
 }

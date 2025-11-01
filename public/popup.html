@@ -1,32 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kr" class="sl-theme-dark">
   <head>
     <meta charset="UTF-8" />
-    <title>My Chrome Extension</title>
-    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="shoelace/themes/dark.css" />
+    <script type="module" src="shoelace/shoelace.js"></script>
   </head>
+
   <body>
-    <div class="app">
-      <p class="counter-label">Counter</p>
-      <div id="counter" class="counter"></div>
-      <div class="button-container">
-        <button id="decrementBtn" class="button">-</button>
-        <button id="incrementBtn" class="button">+</button>
-      </div>
-
-      <hr class="divider" />
-
-      <p class="title">Chrome Extension is Ready!</p>
-      <p class="subtitle">Start by updating <code>popup.html</code></p>
+    <nav>
+      <!-- <sl-button id="authsl-button">구글로 시작!</sl-button> -->
+      <!-- <sl-button id="getAccess">엑세스토큰 재발급</sl-button> -->
+      <!-- <sl-button id="secureBtn">태그데이터 요청</sl-button> -->
+      <!-- <hr> -->
+      <sl-button id="conListUpdate" size="small">아카콘 목록 가져오기</sl-button>
+      <sl-button id="resourceCollect" size="small">데이터 가져오기</sl-button>
+      <sl-button id="listModify" size="small">콘목록 수정</sl-button>
+      <!-- <sl-button id="new_test">토큰 테스트</sl-button> -->
+      <hr />
+      <!-- <p>태그:<input type="text" id="conSearch" /></p> -->
+      <!-- <hr> -->
+    </nav>
+    <div>
+      <!-- 사용할 콤보콘은 여기에 -->
+      <div id="comboConWrap"></div>
+      <sl-switch id="comboCon">콤보콘</sl-switch>
+      <sl-button id="recordCombocon" style="display: none" size="small">콤보콘 작성</sl-button>
     </div>
+    <hr />
+    <div id="conWrap"></div>
 
+    <!-- <script src="js/auth.js"></script> -->
+    <!-- <script src="js/search.js"></script> -->
     <script src="popup.js"></script>
-
-    <!--
-      This HTML file opens when you click on icon from the toolbar.
-
-      To begin the development, run `npm run watch`.
-      To create a production bundle, use `npm run build`.
-    -->
   </body>
 </html>
