@@ -100,17 +100,15 @@ async function signup() {
         }
       );
 
-      tokenRes.json().then(async (tokenData) => {
-        await chrome.storage.local.set({
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: Date.now() + tokenData.expires_in * 1000,
-        });
-        console.log('Token saved to local storage');
-        console.log(parseJwt(tokenData.access_token));
+      const tokenData = await tokenRes.json();
+      await chrome.storage.local.set({
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+        expires_at: Date.now() + tokenData.expires_in * 1000,
       });
-    }
-  );
+      console.log('Token saved to local storage');
+      console.log(parseJwt(tokenData.access_token));
+    });
 }
 
 /** 엑세스토큰 사용/재발급
@@ -150,8 +148,7 @@ async function regenAccessToken() {
     if (!tokenRes.ok) {
       const errorData = await tokenRes.json();
       throw new Error(
-        `Failed to refresh token: ${
-          errorData.error_description || tokenRes.statusText
+        `Failed to refresh token: ${errorData.error_description || tokenRes.statusText
         }`
       );
     }

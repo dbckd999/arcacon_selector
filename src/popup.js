@@ -44,7 +44,7 @@ async function downloadAndBase64(url) {
   });
 }
 
-function showConPackage(packageId, pakcageName) {
+async function showConPackage(packageId, pakcageName) {
   packageId = Number(packageId);
   const ground = document.getElementById('conWrap');
   const _thumbnail_wrapper = document.querySelector(
@@ -73,31 +73,26 @@ function showConPackage(packageId, pakcageName) {
 
   thumbnail_wrapper.append(images_container);
 
-
-  db.emoticon
-    .where('packageId')
-    .equals(packageId)
-    .sortBy('conOrder')
-    .then((res) => {
-      if (res.length === 0) {
-        const goto = document.createElement('sl-button');
-        goto.setAttribute('size', 'small');
-        goto.textContent = '데이터 수집하러 가기';
-        goto.addEventListener('click', () => {
-          chrome.tabs.update({ url: `https://arca.live/e/${packageId}` });
-        });
-        thumbnail_wrapper.append(goto);
-      }
-
-      res.forEach((element) => {
-        const conBase = document.createElement('img');
-        conBase.setAttribute('loading', 'lazy');
-        conBase.setAttribute('class', 'thumbnail');
-        conBase.setAttribute('src', element.image);
-        conBase.setAttribute('data-id', element.conId);
-        images_container.append(conBase);
-      });
+  const query = await db.emoticon.where('packageId').equals(packageId).sortBy('conOrder');
+  
+  if(query.length === 0){
+    const goto = document.createElement('sl-button');
+    goto.setAttribute('size', 'small');
+    goto.textContent = '데이터 수집하러 가기';
+    goto.addEventListener('click', () => {
+      chrome.tabs.update({ url: `https://arca.live/e/${packageId}` });
     });
+    thumbnail_wrapper.append(goto);
+  }
+
+  res.forEach((element) => {
+    const conBase = document.createElement('img');
+    conBase.setAttribute('loading', 'lazy');
+    conBase.setAttribute('class', 'thumbnail');
+    conBase.setAttribute('src', element.image);
+    conBase.setAttribute('data-id', element.conId);
+    images_container.append(conBase);
+  });
 }
 
 function conListup() {
@@ -166,19 +161,25 @@ document.getElementById('comboConWrap').addEventListener('click', () => {
 
 // 로컬 스토리지에 콘 패키지 업데이트
 document.getElementById('conListUpdate').addEventListener('click', async () => {
-  const conPackages = await sendActivity('conLinstUpdate');
-  if(conPackages){
-    localStorage.setItem('arcacon_package', conPackages);
-    
-    let enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
-    if (enabledList === null || enabledList.length === 0) {
-      enabledList = JSON.stringify(Object.keys(JSON.parse(conPackages)).map(Number));
+  try {
+    const { status, data, message } = await sendActivity('conLinstUpdate');
+
+    if (status === 'ok') {
+      localStorage.setItem('arcacon_package', data);
+
+      let enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
+      if (enabledList === null || enabledList.length === 0) {
+        enabledList = JSON.stringify(Object.keys(JSON.parse(data)).map(Number));
+      }
+      localStorage.setItem('arcacon_enabled', enabledList);
+
+      notify('목록을 다운받았습니다. 다시 열어주세요.');
+    } else {
+      notify(message || '알 수 없는 오류', 'danger');
     }
-    localStorage.setItem('arcacon_enabled', enabledList);
-    
-    notify("목록을 다운받았습니다. 다시 열어주세요.");
-  } else {
-    notify("잘못된 요청입니다.", 'danger');
+  } catch (error) {
+    console.error('conListUpdate failed:', error);
+    notify(error.message, 'danger');
   }
 });
 
@@ -204,35 +205,30 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
 });
 
 // 데이터 수집해서 indexedDB에 저장
-document.getElementById('resourceCollect').addEventListener('click', () => {
-  sendActivity('resourceCollect')
-    .then((res) => {
-      console.log(res);
-      if (res.status !== 'ok') {
-        notify('데이터 수집 실패', 'danger');
-      } else {
-        Promise.all(
-          res.data.map(async (item) => {
-            item.image = await downloadAndBase64(item.image);
-            item.video = await downloadAndBase64(item.video);
-            return item;
-          })
-        ).then((results) => {
-          db.emoticon
-            .bulkPut(results)
-            .then(() => {
-              notify('데이터 수집 완료. 확장 프로그램을 닫고 열어주세요.');
-            })
-            .catch((err) => {
-              notify(err, 'danger');
-            });
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      return { status: 'error', message: err };
-    });
+document.getElementById('resourceCollect').addEventListener('click', async () => {
+  try {
+    const res = await sendActivity('resourceCollect');
+    console.log(res);
+
+    if (res.status !== 'ok') {
+      notify(res.message || '데이터 수집에 실패했습니다.', 'danger');
+      return;
+    }
+
+    const results = await Promise.all(
+      res.data.map(async (item) => {
+        item.image = await downloadAndBase64(item.image);
+        item.video = await downloadAndBase64(item.video);
+        return item;
+      })
+    );
+
+    await db.emoticon.bulkPut(results);
+    notify('데이터 수집 완료. 확장 프로그램을 다시 열어주세요.');
+  } catch (err) {
+    console.error('데이터 수집 중 오류 발생:', err);
+    notify(err.message || '알 수 없는 오류가 발생했습니다.', 'danger');
+  }
 });
 
 document.getElementById('listModify').addEventListener('click', () => {

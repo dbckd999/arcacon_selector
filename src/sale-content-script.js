@@ -27,7 +27,7 @@ conForm.setAttribute('action', '#');
 conForm.appendChild(wrapper);
 document.querySelector('div.article-body.emoticon-body').prepend(conForm);
 
-conForm.addEventListener('submit', (event) => {
+conForm.addEventListener('submit', async (event) => {
   // 폼의 기본 제출 동작(페이지 이동)을 막습니다.
   event.preventDefault();
   const formData = new FormData(conForm);
@@ -50,16 +50,21 @@ conForm.addEventListener('submit', (event) => {
 
   console.log('Sending JSON data:', jsonData);
 
-  // fetch(conForm.action, {
+  // const res = await fetch(conForm.action, {
   //   method: 'POST',
   //   headers: {
   //     'Content-Type': 'application/json',
   //   },
   //   body: JSON.stringify(jsonData),
-  // })
-  //   .then((response) => response.json())
-  //   .then((data) => console.log('Success:', data))
-  //   .catch((error) => console.error('Error:', error));
+  // });
+  // if(res.ok){
+  //   const data = await res.json();
+  //   try{
+  //     console.log('Success:', data);
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   }
+  // }
 });
 
 tagApplyBtn.addEventListener('click', () => {
@@ -156,7 +161,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }));
       sendResponse({ status: 'ok', data: res });
       break;
-    default:
-      alert('Unknown action:', msg.action);
+      default:
+        sendResponse({ status: 'error', message: '잘못된 요청' });
   }
+  return true;
 });

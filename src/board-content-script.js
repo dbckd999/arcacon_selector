@@ -1,9 +1,9 @@
-function repleCon(emoticonId, attachmentId) {
+async function repleCon(emoticonId, attachmentId) {
   const csrf = document
     .querySelector('form#commentForm input[name="_csrf"]')
     .getAttribute('value');
 
-  fetch(window.location.href + '/comment', {
+  const res = await fetch(window.location.href + '/comment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -17,16 +17,14 @@ function repleCon(emoticonId, attachmentId) {
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
-  }).then((res) => {
-    // console.log(res);
-    setTimeout(
-      () => document.querySelector('a.newcomment-alert').click(),
-      1000
-    );
   });
+  setTimeout(
+    () => document.querySelector('a.newcomment-alert').click(),
+    1000
+  );
 }
 
-function repleComboCon(combolist) {
+async function repleComboCon(combolist) {
   if (combolist.length === 0) {
     return;
   }
@@ -35,7 +33,8 @@ function repleComboCon(combolist) {
     .querySelector('form#commentForm input[name="_csrf"]')
     .getAttribute('value');
 
-  fetch(window.location.href + '/comment', {
+  const url = new URL(window.location.href);
+  const commentRes = await fetch(url.origin + url.pathname + '/comment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -50,12 +49,13 @@ function repleComboCon(combolist) {
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
-  }).then((res) => {
-    // console.log(res);
+  });
+
+  if(commentRes.ok){
     setTimeout(() => {
       document.querySelector('a.newcomment-alert').click();
     }, 1000);
-  });
+  }
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -77,7 +77,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             ), // expires
           };
         });
-        sendResponse(JSON.stringify(res));
+        sendResponse({ status: 'ok', data: JSON.stringify(res) });
       }
       break;
     // 콘 게시
@@ -91,6 +91,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ status: 'ok' });
       break;
     default:
-      alert('Unknown action:', msg.action);
+      const errorMessage = `Unknown action: ${msg.action}`;
+      console.error(errorMessage);
+      sendResponse({ status: 'error', message: errorMessage });
+      break;
   }
+  return true; // 비동기 응답을 위해 true를 반환합니다.
 });
