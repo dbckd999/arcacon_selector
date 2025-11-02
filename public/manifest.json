@@ -13,7 +13,7 @@
     "default_path": "popup.html"
   },
   "background": {
-    "service_worker": "serviceWorker.js"
+    "service_worker": "service-worker.js"
   },
   "action": {
     "default_title": "Arcacon_selector"
@@ -27,16 +27,16 @@
   "content_scripts": [
     {
       "matches": ["https://arca.live/b/*/*"],
-      "js": ["boardContentScript.js"]
+      "js": ["board-content-script.js"]
     },
     {
       "matches": ["https://arca.live/e/*"],
-      "css": ["popup.css"],
-      "js": ["saleContentScript.js"]
+      "css": ["sale-content-script.css"],
+      "js": ["sale-content-script.js"]
     },
     {
       "matches": ["https://arca.live/settings/emoticons"],
-      "js": ["orderContentScript.js"]
+      "js": ["order-content-script.js"]
     }
   ]
 }
