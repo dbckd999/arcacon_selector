@@ -167,16 +167,19 @@ document.getElementById('comboConWrap').addEventListener('click', () => {
 // 로컬 스토리지에 콘 패키지 업데이트
 document.getElementById('conListUpdate').addEventListener('click', async () => {
   const conPackages = await sendActivity('conLinstUpdate');
-  console.log(conPackages);
-  localStorage.setItem('arcacon_package', conPackages);
-
-  let enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
-  if (enabledList === null || enabledList.length === 0) {
-    enabledList = JSON.stringify(Object.keys(JSON.parse(conPackages)).map(Number));
+  if(conPackages){
+    localStorage.setItem('arcacon_package', conPackages);
+    
+    let enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
+    if (enabledList === null || enabledList.length === 0) {
+      enabledList = JSON.stringify(Object.keys(JSON.parse(conPackages)).map(Number));
+    }
+    localStorage.setItem('arcacon_enabled', enabledList);
+    
+    notify("목록을 다운받았습니다. 다시 열어주세요.");
+  } else {
+    notify("잘못된 요청입니다.", 'danger');
   }
-  localStorage.setItem('arcacon_enabled', enabledList);
-
-  notify("목록을 다운받았습니다. 다시 열어주세요.");
 });
 
 // 아카콘 클릭
