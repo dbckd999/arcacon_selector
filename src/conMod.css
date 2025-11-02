@@ -1,25 +1,19 @@
-/* 1. 최상위 fortags (줄바꿈 활성화) */
 .fortags {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-/* 2. 하위 testd (각 이모티콘 항목) */
 .testd {
   width: 100px;
-  position: relative; /* 버튼 위치의 기준점 */
-  /* ... 기타 스타일 ... */
+  position: relative;
 }
 
-/* 3. 태그 영역과 버튼 */
 .tag-area {
-  /* 이미지가 testd의 첫 번째 자식이므로, 버튼을 이미지 기준으로 배치하려면 
-       이미지 자체를 감싸는 래퍼가 필요하거나, 태그 영역의 높이를 고려해야 합니다. */
-  position: absolute; /* testd 내에서 절대 위치를 가지도록 설정 */
+  position: absolute;
   bottom: 0;
   right: 0;
-  width: 100%; /* 부모와 동일한 너비 */
+  width: 100%;
 }
 
 .tag-input-wrapper {

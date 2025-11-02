@@ -1,5 +1,7 @@
 'use strict';
 
+import './popup.css';
+
 import Dexie from 'dexie';
 const db = new Dexie('Arcacons');
 // 인덱싱되는 속성 정의
@@ -53,6 +55,7 @@ function showConPackage(packageId, pakcageName) {
   }
   if (customSort && customSort.indexOf(packageId) === -1) return;
 
+  // 입력할 칸만 미리 만들어놓고 db관련은 비동기로 진행
   const thumbnail_wrapper = document.createElement('div');
   thumbnail_wrapper.setAttribute('class', 'package-wrap');
   thumbnail_wrapper.setAttribute('data-package-id', packageId);
@@ -69,6 +72,7 @@ function showConPackage(packageId, pakcageName) {
   ground.append(document.createElement('sl-divider'));
 
   thumbnail_wrapper.append(images_container);
+
 
   db.emoticon
     .where('packageId')
@@ -99,27 +103,20 @@ function showConPackage(packageId, pakcageName) {
 function conListup() {
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
+  let source = null;
+
   if (packageL) {
-    if (customSort) {
-      (async () => {
-        for (const pId of customSort) {
-          showConPackage(pId, packageL[pId].title);
-        }
-      })();
-    } else {
-      (async () => {
-        for (const pId of Object.keys(packageL)) {
-          showConPackage(pId, packageL[pId].title);
-        }
-      })();
-    }
+    source = (customSort)?customSort:Object.keys(packageL);
+
+    (async () => {
+      for (const pId of source) {
+        if(pId in packageL) showConPackage(pId, packageL[pId].title);
+      }
+    })();
   }
 }
 
 // shoelace --------------------------
-document.getElementById('test').onclick(()=>{
-  notify('test', 'danger');
-});
 function escapeHtml(html) {
   const div = document.createElement('div');
   div.textContent = html;
@@ -140,7 +137,6 @@ function notify(message, variant = 'primary', icon = 'info-circle', duration = 3
   document.body.append(alert);
   return alert.toast();
 }
-
 // shoelace --------------------------
 
 document.getElementById('comboCon').addEventListener('click', (e) => {
@@ -174,10 +170,13 @@ document.getElementById('conListUpdate').addEventListener('click', async () => {
   console.log(conPackages);
   localStorage.setItem('arcacon_package', conPackages);
 
-  const enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
+  let enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
   if (enabledList === null || enabledList.length === 0) {
-    localStorage.setItem('arcacon_enabled', JSON.stringify(conPackages.keys()));
+    enabledList = JSON.stringify(Object.keys(JSON.parse(conPackages)).map(Number));
   }
+  localStorage.setItem('arcacon_enabled', enabledList);
+
+  notify("목록을 다운받았습니다. 다시 열어주세요.");
 });
 
 // 아카콘 클릭
@@ -236,22 +235,6 @@ document.getElementById('resourceCollect').addEventListener('click', () => {
 document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
-
-if (packageL) {
-  if (customSort) {
-    (async () => {
-      for (const pId of customSort) {
-        showConPackage(pId, packageL[pId].title);
-      }
-    })();
-  } else {
-    (async () => {
-      for (const pId of Object.keys(packageL)) {
-        showConPackage(pId, packageL[pId].title);
-      }
-    })();
-  }
-}
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
