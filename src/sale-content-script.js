@@ -1,3 +1,5 @@
+'use strict';
+
 import './conMod.css';
 
 const tags_debug = {
@@ -20,7 +22,8 @@ wrapper.className += ' fortags';
 
 const conForm = document.createElement('form');
 conForm.setAttribute('method', 'post');
-conForm.setAttribute('action', 'https://api.dbckd999.xyz/test');
+// conForm.setAttribute('action', 'https://api.dbckd999.xyz/test');
+conForm.setAttribute('action', '#');
 conForm.appendChild(wrapper);
 document.querySelector('div.article-body.emoticon-body').prepend(conForm);
 
@@ -47,16 +50,16 @@ conForm.addEventListener('submit', (event) => {
 
   console.log('Sending JSON data:', jsonData);
 
-  fetch(conForm.action, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(jsonData),
-  })
-    .then((response) => response.json())
-    .then((data) => console.log('Success:', data))
-    .catch((error) => console.error('Error:', error));
+  // fetch(conForm.action, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  //   body: JSON.stringify(jsonData),
+  // })
+  //   .then((response) => response.json())
+  //   .then((data) => console.log('Success:', data))
+  //   .catch((error) => console.error('Error:', error));
 });
 
 tagApplyBtn.addEventListener('click', () => {
