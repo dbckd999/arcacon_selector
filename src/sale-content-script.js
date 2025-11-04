@@ -30,7 +30,9 @@ document.querySelector('div.article-body.emoticon-body').prepend(conForm);
 conForm.addEventListener('submit', async (event) => {
   // 폼의 기본 제출 동작(페이지 이동)을 막습니다.
   event.preventDefault();
+
   const formData = new FormData(conForm);
+  console.log(formData.keys());
   const jsonData = {};
 
   // FormData를 순회하며 JSON 객체를 만듭니다.
@@ -46,9 +48,20 @@ conForm.addEventListener('submit', async (event) => {
     if (value.trim() !== '') {
       jsonData[dataId].push(value);
     }
+
+  }
+  
+  const mapped = [];
+  console.log(jsonData);
+  for (const key of Object.keys(jsonData)) {
+    mapped.push({
+      conId: Number(key),
+      tags: jsonData[key]
+    });
   }
 
   console.log('Sending JSON data:', jsonData);
+  chrome.runtime.sendMessage({action: 'updateTags', data: JSON.stringify(mapped)});
 
   // const res = await fetch(conForm.action, {
   //   method: 'POST',
@@ -161,8 +174,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }));
       sendResponse({ status: 'ok', data: res });
       break;
-      default:
-        sendResponse({ status: 'error', message: '잘못된 요청' });
+    default:
+      sendResponse({ status: 'error', message: '잘못된 요청' });
   }
   return true;
 });

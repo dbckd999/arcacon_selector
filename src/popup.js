@@ -85,7 +85,7 @@ async function showConPackage(packageId, pakcageName) {
     thumbnail_wrapper.append(goto);
   }
 
-  res.forEach((element) => {
+  query.forEach((element) => {
     const conBase = document.createElement('img');
     conBase.setAttribute('loading', 'lazy');
     conBase.setAttribute('class', 'thumbnail');
@@ -243,6 +243,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       localStorage.setItem('arcacon_enabled', JSON.stringify(enabled));
       localStorage.setItem('arcacon_disabled', JSON.stringify(disabled));
       localStorage.setItem('arcacon_expired', JSON.stringify(expired));
+      break;
+    case 'updateTags':
+      const data = JSON.parse(msg.data);
+      console.log(data);
+      db.emoticon.bulkPut(data);
       break;
     default:
       alert('Unknown action:', msg.action);

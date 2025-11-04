@@ -3,7 +3,8 @@ async function repleCon(emoticonId, attachmentId) {
     .querySelector('form#commentForm input[name="_csrf"]')
     .getAttribute('value');
 
-  const res = await fetch(window.location.href + '/comment', {
+  const url = new URL(window.location.href);
+  const res = await fetch(url.origin + url.pathname + '/comment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -18,10 +19,12 @@ async function repleCon(emoticonId, attachmentId) {
     credentials: 'include',
     cache: 'no-cache',
   });
-  setTimeout(
-    () => document.querySelector('a.newcomment-alert').click(),
-    1000
-  );
+  if(res.ok){
+    setTimeout(
+      () => document.querySelector('a.newcomment-alert').click(),
+      1000
+    );
+  }
 }
 
 async function repleComboCon(combolist) {
