@@ -138,19 +138,6 @@ document
     conWrapper.querySelector('div.tagWrapper').append(conTag);
   });
 
-async function downloadAndBase64(url) {
-  if (url === null) {
-    return null;
-  }
-  const res = await fetch(url);
-  const b = await res.blob();
-  return await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.readAsDataURL(b);
-  });
-}
-
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
     // 콘 데이터 수집
