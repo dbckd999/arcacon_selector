@@ -1,6 +1,9 @@
 'use strict';
 
 import './popup.css';
+import { createBase, notify } from './notify.ts';
+
+createBase();
 
 // 저장된 콘 패키지 목록 순회
 const packageL = JSON.parse(localStorage.getItem('arcacon_package'));
@@ -110,29 +113,6 @@ async function conListup() {
   };
 }
 
-// shoelace --------------------------
-function escapeHtml(html) {
-  const div = document.createElement('div');
-  div.textContent = html;
-  return div.innerHTML;
-}
-
-function notify(message, variant = 'primary', icon = 'info-circle', duration = 3000) {
-  const alert = Object.assign(document.createElement('sl-alert'), {
-    variant,
-    closable: true,
-    duration: duration,
-    innerHTML: `
-        <sl-icon name="${icon}" slot="icon"></sl-icon>
-        ${escapeHtml(message)}
-      `
-  });
-
-  document.body.append(alert);
-  return alert.toast();
-}
-// shoelace --------------------------
-
 document.getElementById('comboCon').addEventListener('click', (e) => {
   comboState = !comboState;
   document.getElementById('comboCon').innerHTML = comboState
@@ -177,7 +157,7 @@ document.getElementById('conListUpdate').addEventListener('click', async () => {
       notify(message || '알 수 없는 오류', 'danger');
     }
   } catch (error) {
-    console.error('conListUpdate failed:', error);
+    console.error(error);
     notify(error.message, 'danger');
   }
 });
