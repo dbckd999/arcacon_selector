@@ -2,10 +2,6 @@
 
 import './popup.css';
 
-import Dexie from 'dexie';
-const db = new Dexie('Arcacons');
-// 인덱싱되는 속성 정의
-db.version(1).stores({ emoticon: '&conId, [packageId+conOrder], *tags' });
 // 저장된 콘 패키지 목록 순회
 const packageL = JSON.parse(localStorage.getItem('arcacon_package'));
 const customSort = JSON.parse(localStorage.getItem('arcacon_enabled'));
@@ -73,9 +69,14 @@ async function showConPackage(packageId, pakcageName) {
 
   thumbnail_wrapper.append(images_container);
 
-  const query = await db.emoticon.where('packageId').equals(packageId).sortBy('conOrder');
+  // 서비스 워커에 패키지 조회를 요청합니다.
+  const response = await chrome.runtime.sendMessage({
+    action: 'getConPackage',
+    packageId: packageId,
+  });
+  const query = response.data || [];
   
-  if(query.length === 0){
+  if(query.length === 0 || query[0].image === undefined){
     const goto = document.createElement('sl-button');
     goto.setAttribute('size', 'small');
     goto.textContent = '데이터 수집하러 가기';
@@ -83,19 +84,19 @@ async function showConPackage(packageId, pakcageName) {
       chrome.tabs.update({ url: `https://arca.live/e/${packageId}` });
     });
     thumbnail_wrapper.append(goto);
+  } else {
+    query.forEach((element) => {
+      const conBase = document.createElement('img');
+      conBase.setAttribute('loading', 'lazy');
+      conBase.setAttribute('class', 'thumbnail');
+      conBase.setAttribute('src', element.image);
+      conBase.setAttribute('data-id', element.conId);
+      images_container.append(conBase);
+    });
   }
-
-  query.forEach((element) => {
-    const conBase = document.createElement('img');
-    conBase.setAttribute('loading', 'lazy');
-    conBase.setAttribute('class', 'thumbnail');
-    conBase.setAttribute('src', element.image);
-    conBase.setAttribute('data-id', element.conId);
-    images_container.append(conBase);
-  });
 }
 
-function conListup() {
+async function conListup() {
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
   let source = null;
@@ -103,12 +104,10 @@ function conListup() {
   if (packageL) {
     source = (customSort)?customSort:Object.keys(packageL);
 
-    (async () => {
-      for (const pId of source) {
-        if(pId in packageL) showConPackage(pId, packageL[pId].title);
-      }
-    })();
-  }
+    for (const pId of source) {
+      if(pId in packageL) await showConPackage(pId, packageL[pId].title);
+    }
+  };
 }
 
 // shoelace --------------------------
@@ -191,67 +190,18 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   const thumbnail = e.target.closest('.thumbnail');
   const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
 
-  if (conId) {
-    console.log('clicked id', conId);
-    if (comboState) {
-      addCombocon(groupId, conId, thumbnail.cloneNode(true));
-    } else {
-      sendActivity('recordEmoticon', {
-        emoticonId: groupId,
-        attachmentId: conId,
-      });
-    }
-  }
-});
-
-// 데이터 수집해서 indexedDB에 저장
-document.getElementById('resourceCollect').addEventListener('click', async () => {
-  try {
-    const res = await sendActivity('resourceCollect');
-    console.log(res);
-
-    if (res.status !== 'ok') {
-      notify(res.message || '데이터 수집에 실패했습니다.', 'danger');
-      return;
-    }
-
-    const results = await Promise.all(
-      res.data.map(async (item) => {
-        item.image = await downloadAndBase64(item.image);
-        item.video = await downloadAndBase64(item.video);
-        return item;
-      })
-    );
-
-    await db.emoticon.bulkPut(results);
-    notify('데이터 수집 완료. 확장 프로그램을 다시 열어주세요.');
-  } catch (err) {
-    console.error('데이터 수집 중 오류 발생:', err);
-    notify(err.message || '알 수 없는 오류가 발생했습니다.', 'danger');
+  if (conId && comboState) {
+    addCombocon(groupId, conId, thumbnail.cloneNode(true));
+  } else {
+    sendActivity('recordEmoticon', {
+      emoticonId: groupId,
+      attachmentId: conId,
+    });
   }
 });
 
 document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
-});
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  switch (msg.action) {
-    // 정렬될 정보
-    case 'orderUpdated':
-      const { enabled, disabled, expired } = JSON.parse(msg.data);
-      localStorage.setItem('arcacon_enabled', JSON.stringify(enabled));
-      localStorage.setItem('arcacon_disabled', JSON.stringify(disabled));
-      localStorage.setItem('arcacon_expired', JSON.stringify(expired));
-      break;
-    case 'updateTags':
-      const data = JSON.parse(msg.data);
-      console.log(data);
-      db.emoticon.bulkPut(data);
-      break;
-    default:
-      alert('Unknown action:', msg.action);
-  }
 });
 
 conListup();

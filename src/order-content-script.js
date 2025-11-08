@@ -27,13 +27,13 @@ orderApplyBtn.addEventListener('click', () => {
   console.log('Disabled:', disabled);
   console.log('Expired:', expired);
 
-  // 수집한 데이터를 확장 프로그램의 다른 부분(service-worker, popup 등)으로 전송합니다.
+  // 수집한 데이터를 service-worker로 전송합니다.
   chrome.runtime.sendMessage({
     action: 'orderUpdated',
-    data: JSON.stringify({
+    data: {
       enabled,
       disabled,
       expired,
-    }),
+    },
   });
 });
