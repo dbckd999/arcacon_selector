@@ -1,9 +1,7 @@
 'use strict';
 
 import './popup.css';
-import { createBase, notify } from './notify.ts';
-
-createBase();
+import { notify } from './notify.ts';
 
 // 저장된 콘 패키지 목록 순회
 const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
@@ -28,19 +26,6 @@ function addCombocon(groupId, conId, thumbnail) {
   }
   conPackage.push([groupId, conId]);
   document.getElementById('comboConWrap').append(thumbnail);
-}
-
-async function downloadAndBase64(url) {
-  if (url === null) {
-    return null;
-  }
-  const res = await fetch('https:' + url);
-  const b = await res.blob();
-  return await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.readAsDataURL(b);
-  });
 }
 
 async function showConPackage(packageId, pakcageName) {
