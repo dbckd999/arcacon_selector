@@ -6,8 +6,8 @@ import { createBase, notify } from './notify.ts';
 createBase();
 
 // 저장된 콘 패키지 목록 순회
-const packageL = JSON.parse(localStorage.getItem('arcacon_package'));
-const customSort = JSON.parse(localStorage.getItem('arcacon_enabled'));
+const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
+const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_enabled');
 let conPackage = [];
 let comboState = false;
 
@@ -102,15 +102,16 @@ async function showConPackage(packageId, pakcageName) {
 async function conListup() {
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
-  let source = null;
-
-  if (packageL) {
-    source = (customSort)?customSort:Object.keys(packageL);
-
-    for (const pId of source) {
-      if(pId in packageL) await showConPackage(pId, packageL[pId].title);
+  if (customSort && customSort.length === 0) {
+    ground.innerHTML = `
+    아카콘 목록이 비어있습니다.<br/>
+    댓글창의 아카콘버튼을 누른 뒤<br/>
+    '아카콘 목록 가져오기' 버튼을 눌러주세요.`;
+  } else {
+    for (const pId of customSort) {
+      if(pId in packageList) await showConPackage(pId, packageList[pId].title);
     }
-  };
+  }
 }
 
 document.getElementById('comboCon').addEventListener('click', (e) => {
@@ -141,20 +142,14 @@ document.getElementById('comboConWrap').addEventListener('click', () => {
 // 로컬 스토리지에 콘 패키지 업데이트
 document.getElementById('conListUpdate').addEventListener('click', async () => {
   try {
-    const { status, data, message } = await sendActivity('conLinstUpdate');
-
+    const { status, data, message, variant } = await sendActivity('conLinstUpdate');
     if (status === 'ok') {
-      localStorage.setItem('arcacon_package', data);
-
-      let enabledList = JSON.parse(localStorage.getItem('arcacon_enabled'));
-      if (enabledList === null || enabledList.length === 0) {
-        enabledList = JSON.stringify(Object.keys(JSON.parse(data)).map(Number));
-      }
-      localStorage.setItem('arcacon_enabled', enabledList);
-
-      notify('목록을 다운받았습니다. 다시 열어주세요.');
+      notify(message, 'success');
+      conListup();
+    } else if (status === 'fail'){
+      notify(message, 'warning');
     } else {
-      notify(message || '알 수 없는 오류', 'danger');
+      notify(message, 'danger');
     }
   } catch (error) {
     console.error(error);

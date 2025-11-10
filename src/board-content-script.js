@@ -67,7 +67,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case 'conLinstUpdate':
       let _gc = document.querySelectorAll('div.package-item');
       const gc = Array.from(_gc).slice(1);
-      if (gc.length === 0) alert('아카콘 목록을 열어주세요.');
+      if (gc.length === 0) {
+        sendResponse({ status: 'fail', message: "아카콘을 찾을 수 없습니다."});
+        return;
+      }
       else {
         const res = {};
         gc.map((el) => {
@@ -80,7 +83,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             ), // expires
           };
         });
-        sendResponse({ status: 'ok', data: JSON.stringify(res) });
+        (async () => {
+          await chrome.storage.local.set({ arcacon_package: res });
+
+          let { arcacon_enabled:enabledList } = await chrome.storage.local.get('arcacon_enabled');
+          if (enabledList === undefined) enabledList = Object.keys(res).map(Number);
+
+          await chrome.storage.local.set({ arcacon_enabled: enabledList });
+          sendResponse({ status: 'ok', message: "목록을 저장했습니다."});
+        })();
       }
       break;
     // 콘 게시
