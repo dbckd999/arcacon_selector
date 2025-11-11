@@ -41,10 +41,12 @@ collectDataBtn.textContent = '데이터 수집하기';
 collectDataBtn.classList = 'btn btn-arca';
 collectDataBtn.addEventListener('click', async () => {
   const resources = document.querySelectorAll('div.emoticons-wrapper .emoticon');
+  const url = new URL(window.location.href);
+  const packageId = Number(url.pathname.replace('/e/', ''));
   
   const elements = Array.from(resources).map(async (el, idx) => ({
     conId: Number(el.getAttribute('data-id')),
-    packageId: Number(window.location.href.replace('https://arca.live/e/', '')),
+    packageId: packageId,
     conOrder: idx,
     image: await downloadAndBase64(el.getAttribute(el.tagName === 'IMG' ? 'src' : 'poster')),
     video: await downloadAndBase64(el.getAttribute(el.tagName === 'VIDEO' ? 'data-src' : null)),
@@ -100,7 +102,8 @@ conForm.addEventListener('submit', async (event) => {
     }
   }
   
-  const packageId = Number(window.location.href.replace('https://arca.live/e/', ''));
+  const url = new URL(window.location.href);
+  const packageId = Number(url.pathname.replace('/e/', ''));
   const mapped = [];
   console.log(jsonData);
   for (const key of Object.keys(jsonData)) {
@@ -151,7 +154,7 @@ chrome.runtime.sendMessage(
       tagWrapper.classList = 'tagWrapper';
 
       const dataId = emoticon.getAttribute('data-id');
-      if(tags[dataId]){
+      if (tags[dataId]) {
         for (const tag of tags[dataId]) {
           const conTag = document.createElement('input');
           conTag.className = 'testi';

@@ -9,16 +9,6 @@ const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_
 let conPackage = [];
 let comboState = false;
 
-async function sendActivity(action, data = {}) {
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  const tab = tabs[0];
-  const response = await chrome.tabs.sendMessage(tab.id, {
-    action: action,
-    data: data,
-  });
-  return response;
-}
-
 function addCombocon(groupId, conId, thumbnail) {
   if (conPackage.length >= 3) {
     conPackage.shift();
@@ -115,7 +105,7 @@ document.getElementById('comboCon').addEventListener('click', (e) => {
 
 // 콤보콘 게시
 document.getElementById('recordCombocon').addEventListener('click', () => {
-  sendActivity('recordCombocon', conPackage);
+  chrome.runtime.sendMessage({ action: 'recordCombocon', data: conPackage });
   document.getElementById('comboCon').click();
 });
 
@@ -127,8 +117,8 @@ document.getElementById('comboConWrap').addEventListener('click', () => {
 // 로컬 스토리지에 콘 패키지 업데이트
 document.getElementById('conListUpdate').addEventListener('click', async () => {
   try {
-    const { status, data, message, variant } = await sendActivity('conLinstUpdate');
-    if (status === 'ok') {
+    const { status, data, message, variant } = await chrome.runtime.sendMessage({ action: 'conLinstUpdate' });
+data:     if (status === 'ok') {
       notify(message, 'success');
       conListup();
     } else if (status === 'fail'){
@@ -153,10 +143,11 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   if (conId && comboState) {
     addCombocon(groupId, conId, thumbnail.cloneNode(true));
   } else {
-    sendActivity('recordEmoticon', {
+    chrome.runtime.sendMessage({ action: 'recordEmoticon', data: {
       emoticonId: groupId,
       attachmentId: conId,
-    });
+    }
+  });
   }
 });
 
