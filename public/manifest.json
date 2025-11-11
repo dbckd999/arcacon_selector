@@ -18,7 +18,7 @@
   "action": {
     "default_title": "Arcacon_selector"
   },
-  "permissions": ["tabs", "storage", "identity", "sidePanel"],
+  "permissions": ["tabs", "storage", "identity", "sidePanel", "downloads"],
   "host_permissions": [
     "https://auth.dbckd999.xyz/*",
     "https://api.dbckd999.xyz/*",

@@ -1,6 +1,5 @@
-import Dexie from 'dexie';
+import Dexie, { type EntityTable } from 'dexie';
 
-// 데이터베이스 테이블의 타입을 정의합니다. (search.ts와 일치시킵니다)
 interface IEmoticon {
   packageId: number;
   conId: number;
@@ -10,19 +9,38 @@ interface IEmoticon {
   video?: string;
 }
 
-// Dexie 인스턴스에 테이블의 타입을 알려줍니다.
 class ArcaconDB extends Dexie {
-  emoticon!: Dexie.Table<IEmoticon, [number, number]>; // 복합 기본 키 [packageId, conId]의 타입
+  emoticon!: Dexie.Table<IEmoticon, number>; // 기본 키는 'conId' (number)
 
   constructor() {
     super('Arcacons');
     this.version(1).stores({
-      emoticon: '&[packageId+conId], [packageId+conOrder], *tags',
+      // 기본키는 conId, packageId와 tags는 인덱싱합니다.
+      emoticon: 'conId, packageId, *tags',
     });
   }
 }
 
 const db = new ArcaconDB();
+
+// const db = new Dexie('Arcacons') as Dexie & {
+//   emoticon: EntityTable<IEmoticon, 'conId'>;
+//   // (The 4.x EntityTable<T> can make a the primary key optional on
+//   // add/bulkAdd operations)
+// };
+
+// db.version(1).stores({
+//   emoticon: `
+//   conId,
+//   packageId,
+//   conOrder,
+//   *tags
+//   `
+//   // &[packageId+conId], 
+//   // [packageId+conOrder], 
+//   // *tags`
+// });
+
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -35,10 +53,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.action) {
       case 'updateTags':
         try {
-          console.log(msg.data);
           const data: IEmoticon[] = msg.data;
-          await db.emoticon.bulkPut(data);
-          sendResponse({ status: 'ok' });
+          const updates = data.map((item:IEmoticon) => ({
+            key: item.conId,
+            changes: { 
+              tags: item.tags,
+            }
+          }));
+          console.log(updates);
+          await db.emoticon.bulkUpdate(updates);
+          sendResponse({ status: 'ok', message: '태그를 성공적으로 저장했습니다.' });
         } catch (error) {
           console.error('Service Worker: Error updating tags:', error);
           sendResponse({ status: 'error', message: error.message });
@@ -79,9 +103,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
       // 태그데이터 요청
       case 'getTags':
-        console.log(Number(msg.data));
-        const tags = await db.emoticon.where('packageId').equals(Number(msg.data)).toArray();
-        sendResponse({ status: 'ok', data: tags });
+        const pId: number = Number(msg.data);
+        console.log(pId);
+        const emoticons: IEmoticon[] = await db.emoticon.where('packageId').equals(pId).toArray();
+        const tags: { [key: number]: string[] } = {};
+        emoticons.forEach((emoticon:IEmoticon) => {
+          if ('tags' in emoticon){
+            tags[emoticon.conId] = emoticon.tags;
+          }
+        });
+        const result: { [key: number]: { [key: number]: string[] } } = {};
+        result[pId] = tags;
+        sendResponse({ status: 'ok', data: result });
         break;
       }
     })();

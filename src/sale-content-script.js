@@ -136,15 +136,12 @@ conForm.addEventListener('submit', async (event) => {
 // 2. 각 이모티콘을 순회하며 새로운 wrapper(.testd)로 감싸줍니다.
 const packageId = new URL(window.location.href).pathname.replace('/e/', '');
 chrome.runtime.sendMessage(
-  { 
-    action: 'getTags', 
+  {
+    action: 'getTags',
     data: Number(packageId)
   }).then((response) => {
-    const tags = response.data.reduce((acc, current) => {
-      acc[current.conId] = current.tags;
-      return acc;
-    }, {});
-    
+    const tags = response.data[packageId];
+
     const emoticons = document.querySelectorAll('div.emoticons-wrapper *');
     emoticons.forEach((emoticon) => {
       const conWarpper = document.createElement('div');
