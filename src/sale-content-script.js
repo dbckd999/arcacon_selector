@@ -53,7 +53,16 @@ collectDataBtn.addEventListener('click', async () => {
   }));
   const collectedData = await Promise.all(elements);
 
-  const success = await chrome.runtime.sendMessage({ action: 'resourceCollect', data: collectedData });
+  const resourceHeader = document.querySelector('div.emoticon-header-icon > img');
+  const headerIcon = await downloadAndBase64(resourceHeader.getAttribute('src'));
+
+  const success = await chrome.runtime.sendMessage({ 
+    action: 'resourceCollect', 
+    data: collectedData,
+    packageId: packageId,
+    headerIcon: headerIcon,
+  });
+
   if (success.status === 'ok'){
     // notify(notifyElement, '데이터 수집이 완료되었습니다.');
     alert('데이터 수집이 완료되었습니다.');

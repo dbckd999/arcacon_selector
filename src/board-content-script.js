@@ -61,54 +61,92 @@ async function repleComboCon(combolist) {
   }
 }
 
+async function downloadResource(url) {
+  if (url === null) return null;
+
+  const res = await fetch(url);
+
+  const type = res.headers.get('Content-Type') || '';
+  if (!type.startsWith('image/') && !type.startsWith('video/'))
+    throw new Error(`Unsupported type: ${type}`);
+
+  const b = await res.blob();
+  const buff = await b.arrayBuffer();
+
+  return { type: type, source: buff };
+  // const b = await res.blob();
+  // return await new Promise((resolve) => {
+  //   const reader = new FileReader();
+  //   reader.onload = (e) => resolve(e.target.result);
+  //   reader.readAsDataURL(b);
+  // });
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  switch (msg.action) {
-    // 콘 목록 읽기-전송
-    case 'conLinstUpdate':
-      let _gc = document.querySelectorAll('div.package-item');
-      const gc = Array.from(_gc).slice(1);
-      if (gc.length === 0) {
-        sendResponse({ status: 'fail', message: "아카콘을 찾을 수 없습니다."});
-        return;
-      }
-      else {
-        const res = {};
-        gc.map((el) => {
-          subEl = el.querySelector('div');
-          res[Number(el.getAttribute('data-package-id'))] = {
-            packageName: el.getAttribute('data-package-name'),
-            title: el.getAttribute('title'),
-            expires: Number(
-              subEl.getAttribute('style').match(/expires=(\d+)/)[1]
-            ), // expires
-          };
-        });
-        (async () => {
+  (async () => {
+    switch (msg.action) {
+      // 콘 목록 읽기-전송
+      case 'conListUpdate':
+        let _gc = document.querySelectorAll('div.package-item');
+        const gc = Array.from(_gc).slice(1);
+        if (gc.length === 0) {
+          sendResponse({ status: 'fail', message: "아카콘을 찾을 수 없습니다."});
+          return;
+        }
+        else {
+          const res = {};
+          gc.map((el) => {
+            subEl = el.querySelector('div');
+            res[Number(el.getAttribute('data-package-id'))] = {
+              packageName: el.getAttribute('data-package-name'),
+              title: el.getAttribute('title'),
+              expires: Number(
+                subEl.getAttribute('style').match(/expires=(\d+)/)[1]
+              ), // expires
+            };
+          });
           await chrome.storage.local.set({ arcacon_package: res });
 
-          let { arcacon_enabled:enabledList } = await chrome.storage.local.get('arcacon_enabled');
+          const { arcacon_enabled:enabledList } = await chrome.storage.local.get('arcacon_enabled');
           if (enabledList === undefined) enabledList = Object.keys(res).map(Number);
 
           await chrome.storage.local.set({ arcacon_enabled: enabledList });
-          sendResponse({ status: 'ok', message: "목록을 저장했습니다."});
-        })();
-      }
-      break;
-    // 콘 게시
-    case 'recordEmoticon':
-      console.log(msg.data.emoticonId, msg.data.attachmentId);
-      repleCon(msg.data.emoticonId, msg.data.attachmentId);
-      sendResponse({ status: 'ok' });
-      break;
-    case 'recordCombocon':
-      repleComboCon(msg.data);
-      sendResponse({ status: 'ok' });
-      break;
-    default:
-      const errorMessage = `Unknown action: ${msg.action}`;
-      console.error(errorMessage);
-      sendResponse({ status: 'error', message: errorMessage });
-      break;
-  }
+
+          // 아카콘 대표 이미지
+          const resourceHeader = document.querySelectorAll('div.package-thumbnail');
+          const result = Array.from(resourceHeader).slice(1).map(async (el) => {
+            let origin = 'https:' + el.getAttribute('style').replace(/background-image: url\(\"/g, '').replace(/\"\);$/g, '');
+            const { type, source } = await downloadResource(origin);
+            // return {
+            //   packageId: el.getAttribute('data-package-id'),
+            //   [type.split('/')[0]]: source,
+            //   type: type,
+            // };
+            return {
+              packageId: el.getAttribute('data-package-id'),
+              origin: origin,
+            };
+          });
+          const resultAll = await Promise.all(result);
+          sendResponse({ status: 'ok', message: "목록을 저장했습니다.", headCons: resultAll});
+        }
+        break;
+      // 콘 게시
+      case 'recordEmoticon':
+        console.log(msg.data.emoticonId, msg.data.attachmentId);
+        repleCon(msg.data.emoticonId, msg.data.attachmentId);
+        sendResponse({ status: 'ok' });
+        break;
+      case 'recordCombocon':
+        repleComboCon(msg.data);
+        sendResponse({ status: 'ok' });
+        break;
+      default:
+        const errorMessage = `Unknown action: ${msg.action}`;
+        console.error(errorMessage);
+        sendResponse({ status: 'error', message: errorMessage });
+        break;
+    }
+  })();
   return true; // 비동기 응답을 위해 true를 반환합니다.
 });

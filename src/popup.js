@@ -3,6 +3,12 @@
 import './popup.css';
 import { notify } from './notify.ts';
 
+import Dexie from 'dexie';
+const db = new Dexie('Arcacons');
+db.version(1).stores({
+  base_emoticon: 'packageId'
+});
+
 // 저장된 콘 패키지 목록 순회
 const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
 const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_enabled');
@@ -75,6 +81,19 @@ async function showConPackage(packageId, pakcageName) {
 }
 
 async function conListup() {
+  // 상단 헤더 아카콘
+  const headerGround = document.getElementById('conHeaders');
+  headerGround.innerHTML = '';
+  const heads = await db.base_emoticon.toArray();
+  heads.forEach((head) => {
+    const imgElement = document.createElement('img');
+    imgElement.setAttribute('loading', 'lazy');
+    imgElement.setAttribute('class', 'thumbnail');
+    imgElement.setAttribute('src', URL.createObjectURL(head.src));
+    imgElement.setAttribute('data-id', head.packageId);
+    headerGround.append(imgElement);
+  });
+
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
   if (customSort && customSort.length === 0) {
@@ -115,10 +134,16 @@ document.getElementById('comboConWrap').addEventListener('click', () => {
 });
 
 // 로컬 스토리지에 콘 패키지 업데이트
-document.getElementById('conListUpdate').addEventListener('click', async () => {
+document.getElementById('conListUpdateBtn').addEventListener('click', async () => {
   try {
-    const { status, data, message, variant } = await chrome.runtime.sendMessage({ action: 'conLinstUpdate' });
-data:     if (status === 'ok') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) {
+      throw new Error('활성화된 탭을 찾을 수 없습니다.');
+    }
+    const { status, message, headCons } = await chrome.tabs.sendMessage(tab.id, { action: 'conListUpdate' });
+    const { status: status2 } = await chrome.runtime.sendMessage({ action: 'setHeadIcons', data: headCons });
+
+    if (status === 'ok' && status2 === 'ok') {
       notify(message, 'success');
       conListup();
     } else if (status === 'fail'){

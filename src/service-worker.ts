@@ -9,14 +9,22 @@ interface IEmoticon {
   video?: string;
 }
 
+interface IHeaderIcon {
+  packageId: number;
+  image?: string;
+  video?: string;
+}
+
 class ArcaconDB extends Dexie {
   emoticon!: Dexie.Table<IEmoticon, number>; // 기본 키는 'conId' (number)
+  base_emoticon!: Dexie.Table<IHeaderIcon, number>; // 기본 키는 'conId' (number)
 
   constructor() {
     super('Arcacons');
     this.version(1).stores({
       // 기본키는 conId, packageId와 tags는 인덱싱합니다.
       emoticon: 'conId, packageId, *tags',
+      base_emoticon: 'packageId',
     });
   }
 }
@@ -41,6 +49,18 @@ const db = new ArcaconDB();
 //   // *tags`
 // });
 
+async function downloadTest(url:string):Promise<Blob> {
+  if (url === null) return null;
+
+  // const res = await fetch(url);
+  const res = await fetch(url, { mode: 'cors' });
+
+  const type = res.headers.get('Content-Type') || '';
+  if (!type.startsWith('image/') && !type.startsWith('video/'))
+    throw new Error(`Unsupported type: ${type}`);
+
+  return await res.blob();
+}
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -84,21 +104,26 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
 
       case 'orderUpdated':
-        const { enabled, disabled, expired } = msg.data;
-        await chrome.storage.local.set(
-          {
-            arcacon_enabled: enabled, 
-            arcacon_disabled: disabled, 
-            arcacon_expired: expired 
-          });
-        sendResponse({ status: 'ok' });
+        {
+          const { enabled, disabled, expired } = msg.data;
+          await chrome.storage.local.set(
+            {
+              arcacon_enabled: enabled,
+              arcacon_disabled: disabled,
+              arcacon_expired: expired
+            });
+          sendResponse({ status: 'ok' });
+        }
         break;
 
       // 판매 페이지에서 아카콘 이미지데이터 저장
       case 'resourceCollect':
-        const els = msg.data;
-        await db.emoticon.bulkPut(els);
-        sendResponse({ status: 'ok' });
+        {
+          const { data: els, packageId:pId } = msg;
+          await db.emoticon.bulkPut(els);
+          // await db.base_emoticon.put({ packageId: pId, image: headerIcon });
+          sendResponse({ status: 'ok' });
+        };
         break;
 
       // 태그데이터 요청
@@ -114,7 +139,32 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         });
         const result: { [key: number]: { [key: number]: string[] } } = {};
         result[pId] = tags;
+
+        const headerEmoticon = await db.base_emoticon.where('packageId').equals(pId).toArray();
+        console.log(headerEmoticon);
         sendResponse({ status: 'ok', data: result });
+        break;
+
+      case 'setHeadIcons':
+        {
+          const { data:headerIcons } = msg;
+          const res = headerIcons.map(async (cons: { packageId: any; origin: string; }) => {
+            return {
+              packageId: cons.packageId,
+              src: await downloadTest(cons.origin)
+            }
+          });
+          const resPromise = await Promise.all(res);
+          await db.base_emoticon.bulkPut(resPromise);
+          sendResponse({ status: 'ok' });
+        }
+        break;
+        
+      case 'getAllHeadIcons':
+        {
+          const headerIcons = await db.base_emoticon.toArray();
+          sendResponse({ status: 'ok', data: headerIcons });
+        }
         break;
       }
     })();
