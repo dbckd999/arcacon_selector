@@ -114,7 +114,7 @@ async function saveArcacons() {
       };
     });
     await chrome.storage.local.set({ arcacon_package: res });
-    const enabledList = Object.keys(res).map(Number);
+    const enabledList = gc.map((e)=>{return Number(e.getAttribute('data-package-id'))});
     await chrome.storage.local.set({ arcacon_enabled: enabledList });
 
     // 아카콘 대표 이미지
