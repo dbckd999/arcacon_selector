@@ -4,6 +4,25 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
+async function downloadResource(url:string) {
+  if (!url) return null;
+
+  try{
+    const res = await fetch(url);
+    const type = res.headers.get('Content-Type') || '';
+
+    if (!type.startsWith('image/') && !type.startsWith('video/'))
+      throw new Error(`Unsupported type: ${type}`);
+
+    const b = await res.blob();
+    return b;
+  } catch(error) {
+    console.error('url:', url);
+    console.error('Error downloading resource:', error);
+    return null; // 또는 에러 처리에 따라 다른 값 반환
+  }
+}
+
 // onMessage 리스너 자체는 async로 만들지 않습니다.
 // 이렇게 해야 리스너가 즉시 `true`를 반환하여 메시지 채널을 열어둘 수 있습니다.
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -79,6 +98,44 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       //     sendResponse({ status: 'ok', data: headerIcons });
       //   }
       //   break;
+
+      case 'resourceCollect':
+        {
+          const { data: els } = msg;
+          const downloadQueue = els.map(async (el:any) => ({
+            conId: el.conId,
+            packageId: el.packageId,
+            conOrder: el.conOrder,
+            image: await downloadResource(el.image),
+            video: await downloadResource(el.video),
+          }));
+          try{
+            const downloaded = await Promise.all(downloadQueue);
+            await db.emoticon.bulkPut(downloaded);
+            sendResponse({ status: 'ok' });
+          } catch(e) {
+            sendResponse({ status: 'error', message: e.message });
+          }
+          break;
+        };
+
+      case 'saveHeadArcacons':
+        try{
+          const headCons = msg.data;
+          const r = headCons.map(async (el:any) => {
+            return {
+              packageId: el.packageId,
+              src: await downloadResource(el.url),
+            }
+          });
+          const downloaed = await Promise.all(r);
+          await db.base_emoticon.bulkPut(downloaed);
+          sendResponse({ status: 'ok' });
+        } catch(e){
+          console.error(e);
+          sendResponse({ status: 'error', message: e.message });
+        }
+        break;
       }
     })();
   return true;

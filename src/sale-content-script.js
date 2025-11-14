@@ -42,6 +42,12 @@ collectDataBtn.addEventListener('click', async () => {
   chrome.runtime.sendMessage({ 
     action: 'resourceCollect', 
     data: elements
+  }).then((response) => {
+    if(response.status === 'ok'){
+      alert('데이터 수집이 완료되었습니다.');
+    } else {
+      alert(response.message);
+    }
   });
 });
 

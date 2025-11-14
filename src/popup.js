@@ -72,7 +72,7 @@ async function showConPackage(packageId, pakcageName) {
 }
 
 async function conListup() {
-  // 상단 헤더 아카콘
+  // 아카콘 대표 목록
   const headerGround = document.getElementById('conHeaders');
   headerGround.innerHTML = '';
   const heads = await db.base_emoticon.toArray();
@@ -85,13 +85,13 @@ async function conListup() {
     headerGround.append(imgElement);
   });
 
+  // 아카콘 상세 이미지들
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
-  if (customSort && customSort.length === 0) {
+  if (!customSort || customSort.length === 0) {
     ground.innerHTML = `
     아카콘 목록이 비어있습니다.<br/>
-    댓글창의 아카콘버튼을 누른 뒤<br/>
-    '아카콘 목록 가져오기' 버튼을 눌러주세요.`;
+    댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`;
   } else {
     for (const pId of customSort) {
       if(pId in packageList) await showConPackage(pId, packageList[pId].title);
@@ -144,38 +144,38 @@ document.getElementById('comboConWrap').addEventListener('click', () => {
 });
 
 // 로컬 스토리지에 콘 패키지 업데이트
-document.getElementById('conListUpdateBtn').addEventListener('click', async () => {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) {
-      throw new Error('활성화된 탭을 찾을 수 없습니다.');
-    }
-    const { status, message, data:headCons } = await chrome.tabs.sendMessage(tab.id, { action: 'getHeadArcacons' });
-    console.log(test);
-    if (status === 'ok') {
-      try{
-        const r = headCons.map(async (el) => {
-          return {
-            packageId: el.packageId,
-            src: await downloadResource(el.url),
-          }
-        });
-        const downloaed = await Promise.all(r);
-        await db.base_emoticon.bulkPut(downloaed);
-      } catch(e){
-        console.error(e);
-      }
-      notify(message, 'success');
-      conListup();
-    }
-    else if (status === 'fail') { notify(message, 'warning') }
-    else { notify(message, 'danger') }
+// document.getElementById('conListUpdateBtn').addEventListener('click', async () => {
+//   try {
+//     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+//     if (!tab) {
+//       throw new Error('활성화된 탭을 찾을 수 없습니다.');
+//     }
+//     const { status, message, data:headCons } = await chrome.tabs.sendMessage(tab.id, { action: 'getHeadArcacons' });
+//     console.log(test);
+//     if (status === 'ok') {
+//       try{
+//         const r = headCons.map(async (el) => {
+//           return {
+//             packageId: el.packageId,
+//             src: await downloadResource(el.url),
+//           }
+//         });
+//         const downloaed = await Promise.all(r);
+//         await db.base_emoticon.bulkPut(downloaed);
+//       } catch(e){
+//         console.error(e);
+//       }
+//       notify(message, 'success');
+//       conListup();
+//     }
+//     else if (status === 'fail') { notify(message, 'warning') }
+//     else { notify(message, 'danger') }
 
-  } catch (error) {
-    console.error(error);
-    notify(error.message, 'danger');
-  }
-});
+//   } catch (error) {
+//     console.error(error);
+//     notify(error.message, 'danger');
+//   }
+// });
 
 // 아카콘 클릭
 document.getElementById('conWrap').addEventListener('click', async (e) => {
@@ -283,23 +283,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
       console.log(data);
       break;
-    
-    case 'resourceCollect':
-    {
-      const { data: els } = msg;
-      const downloadQueue = els.map(async (el) => ({
-        conId: el.conId,
-        packageId: el.packageId,
-        conOrder: el.conOrder,
-        image: await downloadResource(el.image),
-        video: await downloadResource(el.video),
-      }));
-      const downloaded = await Promise.all(downloadQueue);
-      await db.emoticon.bulkPut(downloaded);
-
-      notify("데이터 수집이 완료되었습니다.", "success");
-      break;
-    };
   }
   })();
   return true; // 비동기 응답을 위해 true를 반환합니다.

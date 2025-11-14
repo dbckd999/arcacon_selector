@@ -62,39 +62,39 @@ async function repleComboCon(combolist) {
 }
 
 // 페이지에서 직접 요청 -> 확장에서 버튼눌러서 요청
-// function createSaveButton(){
-//   const button = document.createElement("button");
-//   button.addEventListener('click', saveArcacons);
-//   button.id = 'save-arcacons';
-//   button.className = "btn-namlacon";
-//   button.type = "button";
-//   button.tabIndex = 104;
-//   button.style = `
-//     padding: 0 .5em;
-//     display: flex;
-//     align-items: center;
-//     background-color: rgba(0, 0, 0, 0);
-//     border: none;
-//     border-radius: 4px;
-//     color: var(--color-text);
-//     transition-duration: .3s;
-//   `
-//   const icon = document.createElement("span");
-//   icon.className = "ion-archive";
-//   icon.style.marginRight = ".1em";
-//   icon.style.fontSize = "1.4em";
+function createSaveButton(){
+  const button = document.createElement("button");
+  button.addEventListener('click', saveArcacons);
+  button.id = 'save-arcacons';
+  button.className = "btn-namlacon";
+  button.type = "button";
+  button.tabIndex = 104;
+  button.style = `
+    padding: 0 .5em;
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    border-radius: 4px;
+    color: var(--color-text);
+    transition-duration: .3s;
+  `
+  const icon = document.createElement("span");
+  icon.className = "ion-archive";
+  icon.style.marginRight = ".1em";
+  icon.style.fontSize = "1.4em";
 
-//   const text = document.createElement("span");
-//   text.className = "text";
-//   text.textContent = "아카콘 목록 저장";
+  const text = document.createElement("span");
+  text.className = "text";
+  text.textContent = "아카콘 목록 저장";
 
-//   button.appendChild(icon);
-//   button.appendChild(text);
+  button.appendChild(icon);
+  button.appendChild(text);
 
-//   return button;
-// }
+  return button;
+}
 
-// document.querySelector('div.reply-form-button-container').prepend(createSaveButton());
+document.querySelector('div.reply-form-button-container').prepend(createSaveButton());
 
 async function saveArcacons() {
   const _gc = document.querySelectorAll('div.package-item');
@@ -126,10 +126,16 @@ async function saveArcacons() {
         url: origin,
       };
     });
-    return result;
+
+    const req = await chrome.runtime.sendMessage({ action: 'saveHeadArcacons', data: result });
+    if(req.status === 'ok'){
+      alert('아카콘 목록을 저장했습니다.');
+    } else {
+      alert(req.message);
+    }
+    
   }
 }
-
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.action) {
@@ -142,11 +148,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'recordCombocon':
         repleComboCon(msg.data);
         sendResponse({ status: 'ok' });
-        break;
-      case 'getHeadArcacons':
-        saveArcacons()
-        .then((result) => sendResponse({ status: 'ok', message: '아카콘 목록을 가져왔습니다.', data: result }))
-        .catch(() => sendResponse({ status: 'fail', message: '아카콘 목록을 가져오지 못했습니다.'}));
         break;
     }
   return true; // 비동기 응답을 위해 true를 반환합니다.
