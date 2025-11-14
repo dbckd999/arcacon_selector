@@ -2,12 +2,7 @@
 
 import './popup.css';
 import { notify } from './notify.ts';
-
-import Dexie from 'dexie';
-const db = new Dexie('Arcacons');
-db.version(1).stores({
-  base_emoticon: 'packageId'
-});
+import db from './database';
 
 // 저장된 콘 패키지 목록 순회
 const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
@@ -53,12 +48,8 @@ async function showConPackage(packageId, pakcageName) {
 
   thumbnail_wrapper.append(images_container);
 
-  // 서비스 워커에 패키지 조회를 요청합니다.
-  const response = await chrome.runtime.sendMessage({
-    action: 'getConPackage',
-    packageId: packageId,
-  });
-  const query = response.data || [];
+  // 이모티콘 사진 쿼리
+  const query = await db.emoticon.where('packageId').equals(packageId).sortBy('conOrder');
   
   if(query.length === 0 || query[0].image === undefined){
     const goto = document.createElement('sl-button');
@@ -73,7 +64,7 @@ async function showConPackage(packageId, pakcageName) {
       const conBase = document.createElement('img');
       conBase.setAttribute('loading', 'lazy');
       conBase.setAttribute('class', 'thumbnail');
-      conBase.setAttribute('src', element.image);
+      conBase.setAttribute('src', URL.createObjectURL(element.image));
       conBase.setAttribute('data-id', element.conId);
       images_container.append(conBase);
     });
@@ -105,6 +96,25 @@ async function conListup() {
     for (const pId of customSort) {
       if(pId in packageList) await showConPackage(pId, packageList[pId].title);
     }
+  }
+}
+
+async function downloadResource(url) {
+  if (!url) return null;
+
+  try{
+    const res = await fetch(url);
+    const type = res.headers.get('Content-Type') || '';
+
+    if (!type.startsWith('image/') && !type.startsWith('video/'))
+      throw new Error(`Unsupported type: ${type}`);
+
+    const b = await res.blob();
+    return b;
+  } catch(error) {
+    console.error('url:', url);
+    console.error('Error downloading resource:', error);
+    return null; // 또는 에러 처리에 따라 다른 값 반환
   }
 }
 
@@ -140,17 +150,27 @@ document.getElementById('conListUpdateBtn').addEventListener('click', async () =
     if (!tab) {
       throw new Error('활성화된 탭을 찾을 수 없습니다.');
     }
-    const { status, message, headCons } = await chrome.tabs.sendMessage(tab.id, { action: 'conListUpdate' });
-    const { status: status2 } = await chrome.runtime.sendMessage({ action: 'setHeadIcons', data: headCons });
-
-    if (status === 'ok' && status2 === 'ok') {
+    const { status, message, data:headCons } = await chrome.tabs.sendMessage(tab.id, { action: 'getHeadArcacons' });
+    console.log(test);
+    if (status === 'ok') {
+      try{
+        const r = headCons.map(async (el) => {
+          return {
+            packageId: el.packageId,
+            src: await downloadResource(el.url),
+          }
+        });
+        const downloaed = await Promise.all(r);
+        await db.base_emoticon.bulkPut(downloaed);
+      } catch(e){
+        console.error(e);
+      }
       notify(message, 'success');
       conListup();
-    } else if (status === 'fail'){
-      notify(message, 'warning');
-    } else {
-      notify(message, 'danger');
     }
+    else if (status === 'fail') { notify(message, 'warning') }
+    else { notify(message, 'danger') }
+
   } catch (error) {
     console.error(error);
     notify(error.message, 'danger');
@@ -251,3 +271,36 @@ document.getElementById('import-test').addEventListener('click', async () => {
 });
 
 conListup();
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  (async () => {
+  switch (msg.action) {
+    case 'saveArcacons':
+      const data = msg.data;
+      data.map(async (el) => {
+        el.image = await downloadResource(el.image);
+        el.video = await downloadResource(el.video);
+      });
+      console.log(data);
+      break;
+    
+    case 'resourceCollect':
+    {
+      const { data: els } = msg;
+      const downloadQueue = els.map(async (el) => ({
+        conId: el.conId,
+        packageId: el.packageId,
+        conOrder: el.conOrder,
+        image: await downloadResource(el.image),
+        video: await downloadResource(el.video),
+      }));
+      const downloaded = await Promise.all(downloadQueue);
+      await db.emoticon.bulkPut(downloaded);
+
+      notify("데이터 수집이 완료되었습니다.", "success");
+      break;
+    };
+  }
+  })();
+  return true; // 비동기 응답을 위해 true를 반환합니다.
+});

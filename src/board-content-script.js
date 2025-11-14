@@ -61,76 +61,78 @@ async function repleComboCon(combolist) {
   }
 }
 
-async function downloadResource(url) {
-  if (url === null) return null;
+// 페이지에서 직접 요청 -> 확장에서 버튼눌러서 요청
+// function createSaveButton(){
+//   const button = document.createElement("button");
+//   button.addEventListener('click', saveArcacons);
+//   button.id = 'save-arcacons';
+//   button.className = "btn-namlacon";
+//   button.type = "button";
+//   button.tabIndex = 104;
+//   button.style = `
+//     padding: 0 .5em;
+//     display: flex;
+//     align-items: center;
+//     background-color: rgba(0, 0, 0, 0);
+//     border: none;
+//     border-radius: 4px;
+//     color: var(--color-text);
+//     transition-duration: .3s;
+//   `
+//   const icon = document.createElement("span");
+//   icon.className = "ion-archive";
+//   icon.style.marginRight = ".1em";
+//   icon.style.fontSize = "1.4em";
 
-  const res = await fetch(url);
+//   const text = document.createElement("span");
+//   text.className = "text";
+//   text.textContent = "아카콘 목록 저장";
 
-  const type = res.headers.get('Content-Type') || '';
-  if (!type.startsWith('image/') && !type.startsWith('video/'))
-    throw new Error(`Unsupported type: ${type}`);
+//   button.appendChild(icon);
+//   button.appendChild(text);
 
-  const b = await res.blob();
-  const buff = await b.arrayBuffer();
+//   return button;
+// }
 
-  return { type: type, source: buff };
-  // const b = await res.blob();
-  // return await new Promise((resolve) => {
-  //   const reader = new FileReader();
-  //   reader.onload = (e) => resolve(e.target.result);
-  //   reader.readAsDataURL(b);
-  // });
+// document.querySelector('div.reply-form-button-container').prepend(createSaveButton());
+
+async function saveArcacons() {
+  const _gc = document.querySelectorAll('div.package-item');
+  const gc = Array.from(_gc).slice(1);
+  if (gc.length === 0) {
+    alert("아카콘을 목록을 열어주세요.");
+    return;
+  }
+  else {
+    const res = {};
+    gc.map((el) => {
+      const subEl = el.querySelector('div');
+      res[Number(el.getAttribute('data-package-id'))] = {
+        packageName: el.getAttribute('data-package-name'),
+        title: el.getAttribute('title'),
+        expires: Number(subEl.getAttribute('style').match(/expires=(\d+)/)[1]),
+      };
+    });
+    await chrome.storage.local.set({ arcacon_package: res });
+    const enabledList = Object.keys(res).map(Number);
+    await chrome.storage.local.set({ arcacon_enabled: enabledList });
+
+    // 아카콘 대표 이미지
+    const resourceHeader = document.querySelectorAll('div.package-thumbnail');
+    const result = Array.from(resourceHeader).slice(1).map((el) => {
+      const origin = 'https:' + el.getAttribute('style').replace(/background-image: url\(\"/g, '').replace(/\"\);$/g, '');
+      return {
+        packageId: Number(el.getAttribute('data-package-id')),
+        url: origin,
+      };
+    });
+    return result;
+  }
 }
 
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  (async () => {
     switch (msg.action) {
-      // 콘 목록 읽기-전송
-      case 'conListUpdate':
-        let _gc = document.querySelectorAll('div.package-item');
-        const gc = Array.from(_gc).slice(1);
-        if (gc.length === 0) {
-          sendResponse({ status: 'fail', message: "아카콘을 찾을 수 없습니다."});
-          return;
-        }
-        else {
-          const res = {};
-          gc.map((el) => {
-            subEl = el.querySelector('div');
-            res[Number(el.getAttribute('data-package-id'))] = {
-              packageName: el.getAttribute('data-package-name'),
-              title: el.getAttribute('title'),
-              expires: Number(
-                subEl.getAttribute('style').match(/expires=(\d+)/)[1]
-              ), // expires
-            };
-          });
-          await chrome.storage.local.set({ arcacon_package: res });
-
-          const { arcacon_enabled:enabledList } = await chrome.storage.local.get('arcacon_enabled');
-          if (enabledList === undefined) enabledList = Object.keys(res).map(Number);
-
-          await chrome.storage.local.set({ arcacon_enabled: enabledList });
-
-          // 아카콘 대표 이미지
-          const resourceHeader = document.querySelectorAll('div.package-thumbnail');
-          const result = Array.from(resourceHeader).slice(1).map(async (el) => {
-            let origin = 'https:' + el.getAttribute('style').replace(/background-image: url\(\"/g, '').replace(/\"\);$/g, '');
-            const { type, source } = await downloadResource(origin);
-            // return {
-            //   packageId: el.getAttribute('data-package-id'),
-            //   [type.split('/')[0]]: source,
-            //   type: type,
-            // };
-            return {
-              packageId: el.getAttribute('data-package-id'),
-              origin: origin,
-            };
-          });
-          const resultAll = await Promise.all(result);
-          sendResponse({ status: 'ok', message: "목록을 저장했습니다.", headCons: resultAll});
-        }
-        break;
       // 콘 게시
       case 'recordEmoticon':
         console.log(msg.data.emoticonId, msg.data.attachmentId);
@@ -141,12 +143,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         repleComboCon(msg.data);
         sendResponse({ status: 'ok' });
         break;
-      default:
-        const errorMessage = `Unknown action: ${msg.action}`;
-        console.error(errorMessage);
-        sendResponse({ status: 'error', message: errorMessage });
+      case 'getHeadArcacons':
+        saveArcacons()
+        .then((result) => sendResponse({ status: 'ok', message: '아카콘 목록을 가져왔습니다.', data: result }))
+        .catch(() => sendResponse({ status: 'fail', message: '아카콘 목록을 가져오지 못했습니다.'}));
         break;
     }
-  })();
   return true; // 비동기 응답을 위해 true를 반환합니다.
 });

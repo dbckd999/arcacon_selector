@@ -22,19 +22,6 @@ tagApplyBtn.addEventListener('click', () => {
   conForm.requestSubmit();
 });
 
-async function downloadAndBase64(url) {
-  if (url === null) {
-    return url;
-  }
-  const res = await fetch('https:' + url);
-  const b = await res.blob();
-  return await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.readAsDataURL(b);
-  });
-}
-
 const collectDataBtn = document.createElement('button');
 collectDataBtn.setAttribute('type', 'button');
 collectDataBtn.textContent = '데이터 수집하기';
@@ -44,32 +31,18 @@ collectDataBtn.addEventListener('click', async () => {
   const url = new URL(window.location.href);
   const packageId = Number(url.pathname.replace('/e/', ''));
   
-  const elements = Array.from(resources).map(async (el, idx) => ({
+  const elements = Array.from(resources).map((el, idx) => ({
     conId: Number(el.getAttribute('data-id')),
     packageId: packageId,
     conOrder: idx,
-    image: await downloadAndBase64(el.getAttribute(el.tagName === 'IMG' ? 'src' : 'poster')),
-    video: await downloadAndBase64(el.getAttribute(el.tagName === 'VIDEO' ? 'data-src' : null)),
+    image: 'https:' + el.getAttribute(el.tagName === 'IMG' ? 'src' : 'poster'),
+    video: el.hasAttribute('data-src')? 'https:' + el.getAttribute('data-src') : null,
   }));
-  const collectedData = await Promise.all(elements);
 
-  const resourceHeader = document.querySelector('div.emoticon-header-icon > img');
-  const headerIcon = await downloadAndBase64(resourceHeader.getAttribute('src'));
-
-  const success = await chrome.runtime.sendMessage({ 
+  chrome.runtime.sendMessage({ 
     action: 'resourceCollect', 
-    data: collectedData,
-    packageId: packageId,
-    headerIcon: headerIcon,
+    data: elements
   });
-
-  if (success.status === 'ok'){
-    // notify(notifyElement, '데이터 수집이 완료되었습니다.');
-    alert('데이터 수집이 완료되었습니다.');
-  } else {
-    alert('오류. 콘솔확인');
-    console.error(success);
-  }
 });
 
 
