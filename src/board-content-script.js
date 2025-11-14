@@ -145,6 +145,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         repleCon(msg.data.emoticonId, msg.data.attachmentId);
         sendResponse({ status: 'ok' });
         break;
+      // 콤보콘 게시
       case 'recordCombocon':
         repleComboCon(msg.data);
         sendResponse({ status: 'ok' });

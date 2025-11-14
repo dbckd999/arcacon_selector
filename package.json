@@ -27,6 +27,7 @@
     "@shoelace-style/shoelace": "^2.20.1",
     "dexie": "^4.2.1",
     "glob": "^11.0.3",
+    "jszip": "^3.10.1",
     "path": "^0.12.7",
     "typescript": "^5.9.3"
   }

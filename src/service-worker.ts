@@ -39,7 +39,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           }));
           console.log(updates);
           await db.emoticon.bulkUpdate(updates);
-          sendResponse({ status: 'ok', message: '태그를 성공적으로 저장했습니다.' });
+          sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
         } catch (error) {
           console.error('Service Worker: Error updating tags:', error);
           sendResponse({ status: 'error', message: error.message });

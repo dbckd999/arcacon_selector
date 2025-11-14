@@ -9,6 +9,17 @@
 </head>
 
 <body>
+  <form id="downloadForm">
+    <sl-dialog label="내보내기 목록" class="dialog-overview">
+      내보낼 아카콘의 이름을 선택하세요
+      <div id="downloadBox"></div>
+      
+      <sl-button slot="footer" variant="primary" id="downloadBoxInit">초기화</sl-button>
+      <sl-button type="submit" slot="footer" variant="primary">내보내기</sl-button>
+      <sl-button slot="footer" variant="primary" id="closeDialogBtn">닫기</sl-button>
+    </sl-dialog>
+  </form>
+
   <nav>
     <!-- 인증/인가기능 -->
     <!-- <sl-button id="authsl-button">구글로 시작!</sl-button> -->
@@ -21,7 +32,8 @@
     <!-- <sl-button id="resourceCollect" size="small">데이터 가져오기</sl-button> -->
     <sl-button id="listModify" size="small">콘목록 수정</sl-button>
     <!-- <sl-button id="new_test">토큰 테스트</sl-button> -->
-    <sl-button id="export-test" size="small">export</sl-button>
+    <sl-button id="dialog-test" size="small">태그 내보내기</sl-button>
+    <!-- <sl-button id="export-test" size="small">export</sl-button> -->
     <sl-button id="import-test" size="small">import</sl-button>
 
     <sl-divider></sl-divider>

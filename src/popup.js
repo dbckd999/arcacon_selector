@@ -3,6 +3,8 @@
 import './popup.css';
 import { notify } from './notify.ts';
 import db from './database';
+import * as JSZip from 'jszip';
+import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
 // 저장된 콘 패키지 목록 순회
 const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
@@ -118,6 +120,34 @@ async function downloadResource(url) {
   }
 }
 
+async function downloadTags(packageIds){
+  const z = JSZip();
+  const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+  const loading = packageIds.map(async (packageId) => {
+    const { status, data:tags } = await chrome.runtime.sendMessage({ action: 'getTags', data: Number(packageId) });
+    // JSZip은 문자열을 직접 받을 수 있으므로 Blob을 생성할 필요가 없습니다.
+    const content = JSON.stringify(tags, null, 2);
+    return { packageId, content };
+  });
+  const done = await Promise.all(loading);
+
+  done.forEach((file) => {
+    z.file(`${file.packageId}-${yymmdd}.json`, file.content);
+  })
+  const file = await z.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(file);
+  try{
+    chrome.downloads.download({
+      url: url,
+      filename: `arcacons-tags-${yymmdd}.zip`, // 여러 json을 압축했으므로 .zip 확장자가 더 적절합니다.
+      saveAs: true,
+    });
+  }catch(e){
+    console.log(e);
+  }
+}
+
 document.getElementById('comboCon').addEventListener('click', (e) => {
   comboState = !comboState;
   document.getElementById('comboCon').innerHTML = comboState
@@ -142,6 +172,14 @@ document.getElementById('recordCombocon').addEventListener('click', () => {
 document.getElementById('comboConWrap').addEventListener('click', () => {
   console.log('asdf');
 });
+
+const dialog = document.querySelector('.dialog-overview');
+const openButton = document.getElementById('dialog-test');
+const closeButton = document.getElementById('closeDialogBtn');
+
+openButton.addEventListener('click', () => dialog.show());
+closeButton.addEventListener('click', () => dialog.hide());
+  
 
 // 로컬 스토리지에 콘 패키지 업데이트
 // document.getElementById('conListUpdateBtn').addEventListener('click', async () => {
@@ -200,23 +238,10 @@ document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
 
-document.getElementById('export-test').addEventListener('click', async () => {
-  const packageId = "2432";
-
-  const { status, data:tags } = await chrome.runtime.sendMessage({ action: 'getTags', data: Number(packageId) });
-  const blob = new Blob([JSON.stringify(tags, null, 2)], { type: 'application/json' });
-  const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  try{
-    const url = URL.createObjectURL(blob);
-    chrome.downloads.download({
-      url: url,
-      filename: `${packageId}-${yymmdd}.json`,
-      saveAs: true,
-    });
-  }catch(e){
-    console.log(e);
-  }
-});
+// document.getElementById('export-test').addEventListener('click', async () => {
+//   const packageId = "2432";
+//   await downloadTags([packageId]);
+// });
 
 document.getElementById('import-test').addEventListener('click', async () => {
   // 1. 숨겨진 file input 요소를 만듭니다.
@@ -268,6 +293,31 @@ document.getElementById('import-test').addEventListener('click', async () => {
   document.body.appendChild(fileInput);
   fileInput.click();
   document.body.removeChild(fileInput);
+});
+
+customSort.forEach(pid => {
+  const box = document.createElement('sl-checkbox');
+  box.name = "package"
+  box.value = pid;
+  box.innerHTML = packageList[pid].packageName;
+
+
+  document.getElementById('downloadBox').append(box);
+  document.getElementById('downloadBox').append(document.createElement('br'));
+});
+
+document.getElementById('downloadForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const data = serialize(e.target);
+  if(data.package === undefined) return;
+  if(typeof(data.package) === 'string') data.package = [data.package];
+  downloadTags(data.package);
+});
+
+document.getElementById('downloadBoxInit').addEventListener('click', () => {
+  document.querySelectorAll('div#downloadBox sl-checkbox').forEach((el) => {
+    el.checked = false;
+  });
 });
 
 conListup();

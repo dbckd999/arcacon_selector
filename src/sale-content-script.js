@@ -102,23 +102,12 @@ conForm.addEventListener('submit', async (event) => {
     });
   }
 
-  chrome.runtime.sendMessage({action: 'updateTags', data: mapped});
-
-  // const res = await fetch(conForm.action, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify(jsonData),
-  // });
-  // if(res.ok){
-  //   const data = await res.json();
-  //   try{
-  //     console.log('Success:', data);
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //   }
-  // }
+  const { status, message } = await chrome.runtime.sendMessage({action: 'updateTags', data: mapped});
+  if(status === 'ok'){
+    alert(message);
+  } else {
+    alert(message);
+  }
 });
 
 // 1. 원본 이모티콘(video, img)들을 먼저 선택합니다.
