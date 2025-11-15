@@ -1,6 +1,10 @@
-.images-container img{
-    width: 100px;
-    height: 100px;
+body {
+  margin: 0;
+}
+
+.images-container img {
+  width: 100px;
+  height: 100px;
 }
 
 nav {
@@ -10,6 +14,16 @@ nav {
   z-index: 1;
 }
 
-body {
-    margin: 0;
+#conHeaders {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: scroll;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+a.in-view sl-avatar::part(base) {
+  border: 2px solid var(--sl-color-primary-600);
+  box-shadow: 0 0 8px 0 var(--sl-color-primary-500);
+  /* transition: border 0.2s, box-shadow 0.2s; */
 }

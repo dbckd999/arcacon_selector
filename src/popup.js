@@ -4,6 +4,7 @@ import './popup.css';
 import { notify } from './notify.ts';
 import db from './database';
 import * as JSZip from 'jszip';
+import ScrollSpy from 'scrollspy-js';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
 // 저장된 콘 패키지 목록 순회
@@ -35,6 +36,7 @@ async function showConPackage(packageId, pakcageName) {
   // 입력할 칸만 미리 만들어놓고 db관련은 비동기로 진행
   const thumbnail_wrapper = document.createElement('div');
   thumbnail_wrapper.setAttribute('class', 'package-wrap');
+  thumbnail_wrapper.id = `${packageId}`; // scrollspy-js가 참조할 id 추가
   thumbnail_wrapper.setAttribute('data-package-id', packageId);
 
   const title = document.createElement('span');
@@ -78,16 +80,25 @@ async function conListup() {
   const headerGround = document.getElementById('conHeaders');
   headerGround.innerHTML = '';
   const heads = await db.base_emoticon.toArray();
+  const objHeads = {}
   heads.forEach((head) => {
-    const imgElement = document.createElement('img');
-    imgElement.setAttribute('loading', 'lazy');
-    imgElement.setAttribute('class', 'thumbnail');
-    imgElement.setAttribute('src', URL.createObjectURL(head.src));
-    imgElement.setAttribute('data-id', head.packageId);
-    headerGround.append(imgElement);
+    objHeads[head.packageId] = head.src;
   });
+  // 아바타의 href 속성을 설정하여 scrollspy-js가 타겟을 찾을 수 있도록 합니다.
+  customSort.forEach(pId =>{
+    // scrollspy-js는 <a> 태그의 href를 참조하므로, <a> 태그를 생성합니다.
+    const anchor = document.createElement('a');
+    anchor.href = `#${pId}`;
 
-  // 아카콘 상세 이미지들
+    const imgElement = document.createElement('sl-avatar');
+    imgElement.setAttribute('data-id', pId);
+    imgElement.setAttribute('image', URL.createObjectURL(objHeads[pId]));
+
+    anchor.append(imgElement);
+    headerGround.append(anchor);
+});
+
+  // 아카콘 상세 이미지들 (스크롤 대상 컨테이너)
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
   if (!customSort || customSort.length === 0) {
@@ -98,6 +109,33 @@ async function conListup() {
     for (const pId of customSort) {
       if(pId in packageList) await showConPackage(pId, packageList[pId].title);
     }
+
+    const navBar = document.getElementById('conHeaders');
+    const navHeight = navBar ? navBar.offsetHeight : 0;
+
+    const spy = new ScrollSpy('body', {
+      nav: '#conHeaders a',
+      className: 'in-view',
+      offset: navHeight + 10,
+      // onActive 대신 callback 옵션을 사용합니다.
+      // 스크롤 시 활성화된 메뉴 아이템을 찾아 중앙으로 스크롤합니다.
+      callback: () => {
+        const activeItem = document.querySelector('#conHeaders a.in-view');
+        if (activeItem) {
+          const navContainer = document.getElementById('conHeaders');
+          const containerWidth = navContainer.offsetWidth;
+          const itemLeft = activeItem.offsetLeft;
+          const itemWidth = activeItem.offsetWidth;
+
+          const scrollLeft = itemLeft - (containerWidth / 2) + (itemWidth / 2);
+
+          navContainer.scrollTo({
+            left: scrollLeft,
+            behavior: 'smooth',
+          });
+        }
+      },
+    });
   }
 }
 
@@ -215,6 +253,7 @@ closeButton.addEventListener('click', () => dialog.hide());
 //   }
 // });
 
+
 // 아카콘 클릭
 document.getElementById('conWrap').addEventListener('click', async (e) => {
   // 클릭된 요소가 .thumbnail인지 확인
@@ -300,7 +339,6 @@ customSort.forEach(pid => {
   box.name = "package"
   box.value = pid;
   box.innerHTML = packageList[pid].packageName;
-
 
   document.getElementById('downloadBox').append(box);
   document.getElementById('downloadBox').append(document.createElement('br'));
