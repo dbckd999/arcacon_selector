@@ -39,18 +39,19 @@ async function showConPackage(packageId, pakcageName) {
   thumbnail_wrapper.id = `${packageId}`; // scrollspy-js가 참조할 id 추가
   thumbnail_wrapper.setAttribute('data-package-id', packageId);
 
+  // 아카콘 제목
   const title = document.createElement('span');
   title.textContent = pakcageName;
   thumbnail_wrapper.append(title);
   thumbnail_wrapper.append(document.createElement('br'));
 
+  // 이미지 그룹
   const images_container = document.createElement('div');
   images_container.setAttribute('class', 'images-container');
+  thumbnail_wrapper.append(images_container);
 
   ground.append(thumbnail_wrapper);
   ground.append(document.createElement('sl-divider'));
-
-  thumbnail_wrapper.append(images_container);
 
   // 이모티콘 사진 쿼리
   const query = await db.emoticon.where('packageId').equals(packageId).sortBy('conOrder');
@@ -64,6 +65,7 @@ async function showConPackage(packageId, pakcageName) {
     });
     thumbnail_wrapper.append(goto);
   } else {
+    // 이미지 그룹에 사진 추가
     query.forEach((element) => {
       const conBase = document.createElement('img');
       conBase.setAttribute('loading', 'lazy');
@@ -110,14 +112,9 @@ async function conListup() {
       if(pId in packageList) await showConPackage(pId, packageList[pId].title);
     }
 
-    const navBar = document.getElementById('conHeaders');
-    const navHeight = navBar ? navBar.offsetHeight : 0;
-
-    const spy = new ScrollSpy('body', {
+    const spy = new ScrollSpy('nav', {
       nav: '#conHeaders a',
       className: 'in-view',
-      offset: navHeight + 10,
-      // onActive 대신 callback 옵션을 사용합니다.
       // 스크롤 시 활성화된 메뉴 아이템을 찾아 중앙으로 스크롤합니다.
       callback: () => {
         const activeItem = document.querySelector('#conHeaders a.in-view');
@@ -137,6 +134,20 @@ async function conListup() {
       },
     });
   }
+}
+
+// ScrollSpy의 isInView 함수를 재정의하여 offset 기능 추가
+ScrollSpy.prototype.isInView = function (el) {
+  // 하드코딩된 위치
+  const navBar = document.querySelector('nav');
+  const navHeight = navBar ? navBar.offsetHeight : 0;
+  const offset = navHeight + 10;
+
+  const rect = el.getBoundingClientRect();
+
+  // 요소의 상단이 offset보다 위에 있고, 요소의 하단이 offset보다 아래에 있을 때 true를 반환합니다.
+  // 즉, offset 라인이 요소를 가로지를 때 활성화됩니다.
+  return rect.top <= offset && rect.bottom >= offset;
 }
 
 async function downloadResource(url) {
@@ -219,42 +230,6 @@ const closeButton = document.getElementById('closeDialogBtn');
 
 openButton.addEventListener('click', () => dialog.show());
 closeButton.addEventListener('click', () => dialog.hide());
-  
-
-// 로컬 스토리지에 콘 패키지 업데이트
-// document.getElementById('conListUpdateBtn').addEventListener('click', async () => {
-//   try {
-//     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-//     if (!tab) {
-//       throw new Error('활성화된 탭을 찾을 수 없습니다.');
-//     }
-//     const { status, message, data:headCons } = await chrome.tabs.sendMessage(tab.id, { action: 'getHeadArcacons' });
-//     console.log(test);
-//     if (status === 'ok') {
-//       try{
-//         const r = headCons.map(async (el) => {
-//           return {
-//             packageId: el.packageId,
-//             src: await downloadResource(el.url),
-//           }
-//         });
-//         const downloaed = await Promise.all(r);
-//         await db.base_emoticon.bulkPut(downloaed);
-//       } catch(e){
-//         console.error(e);
-//       }
-//       notify(message, 'success');
-//       conListup();
-//     }
-//     else if (status === 'fail') { notify(message, 'warning') }
-//     else { notify(message, 'danger') }
-
-//   } catch (error) {
-//     console.error(error);
-//     notify(error.message, 'danger');
-//   }
-// });
-
 
 // 아카콘 클릭
 document.getElementById('conWrap').addEventListener('click', async (e) => {
