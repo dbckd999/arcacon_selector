@@ -353,3 +353,71 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   })();
   return true; // 비동기 응답을 위해 true를 반환합니다.
 });
+
+// 검색할 정보들
+const tags = [];
+
+tags.remove = function (index) {
+  this.splice(index, 1);
+}
+
+const tagGroup = document.querySelector('.tags-removable');
+tagGroup.addEventListener('sl-remove', event => {
+  const tag = event.target;
+  const tagData = tag.getAttribute('data-tag');
+  const tagIndex = tags.indexOf(tagData);
+  tag.style.opacity = '0';
+
+  tags.remove(tagIndex);
+  tag.remove();
+});
+
+document.getElementById('removeAllTag').addEventListener('click', (e) => {
+  const tagEls = document.querySelectorAll('.tags-removable sl-tag');
+  tagEls.forEach((tag) => {
+    tag.remove();
+  });
+  tags.length = 0;
+});
+
+const tagGround = document.querySelector('.tags-removable');
+document.getElementById('tagInput').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const tagInput = serialize(e.target).tag.split(' ');
+  document.querySelector('#tagInput sl-input').value = '';
+  
+  while(tagInput.length){
+    const t = tagInput.shift();
+    tags.push(t);
+    
+    const tagEl = document.createElement('sl-tag');
+    tagEl.setAttribute('data-tag', t);
+    tagEl.setAttribute('size', 'small');
+    tagEl.setAttribute('removable', true);
+    tagEl.innerHTML = t;
+    
+    tagGround.append(tagEl);
+  }
+
+  // 개발용__________________
+  
+  db.emoticon.where('tags').startsWithAnyOfIgnoreCase(tags).toArray().then((res) => {
+    const board = document.getElementById('searchResult');
+    board.innerHTML = '';
+    
+    const r = res.map(r => { return {image: r.image, conId: r.conId} });
+    // for(b in r){
+    r.forEach((b) => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(b.image);
+      img.setAttribute('data-id', b.conId);
+      board.append(img);
+    });
+  });
+
+  // 콘만 따로
+
+
+  
+  // 개발용__________________
+});
