@@ -11,7 +11,7 @@ import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
 const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_enabled');
 let conPackage = [];
-let comboState = false;
+let isCombo = false;
 
 function addCombocon(groupId, conId, thumbnail) {
   if (conPackage.length >= 3) {
@@ -186,15 +186,15 @@ async function downloadTags(packageIds){
   }
 }
 
-document.getElementById('comboCon').addEventListener('click', (e) => {
-  comboState = !comboState;
-  document.getElementById('comboCon').innerHTML = comboState
-    ? '콤보 활성'
-    : '콤보 비활성';
-
-  if (comboState) {
+// 콤보콘 상태변경
+const repleyComboBtn = document.getElementById('recordCombocon');
+document.getElementById('comboCon').addEventListener('sl-change', (e) => {
+  isCombo = !e.target.hasAttribute('checked');
+  if (isCombo) {
     // 콤보콘 설정이 활성화 되었을때
+    repleyComboBtn.removeAttribute('disabled');
   } else {
+    repleyComboBtn.setAttribute('disabled', true);
     conPackage = [];
     document.getElementById('comboConWrap').innerHTML = '';
   }
@@ -202,8 +202,10 @@ document.getElementById('comboCon').addEventListener('click', (e) => {
 
 // 콤보콘 게시
 document.getElementById('recordCombocon').addEventListener('click', () => {
-  chrome.runtime.sendMessage({ action: 'recordCombocon', data: conPackage });
-  document.getElementById('comboCon').click();
+  chrome.tabs.query({active: true, currentWindow: true}, async (tabs)=>{
+    await chrome.tabs.sendMessage(tabs[0].id, {action: "recordCombocon", data: conPackage });
+    document.getElementById('comboCon').click();
+    });
 });
 
 // 콤보콘 목록 클릭-삭제
@@ -262,14 +264,15 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   const thumbnail = e.target.closest('.thumbnail');
   const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
 
-  if (conId && comboState) {
+  if (conId && isCombo) {
     addCombocon(groupId, conId, thumbnail.cloneNode(true));
   } else {
-    chrome.runtime.sendMessage({ action: 'recordEmoticon', data: {
-      emoticonId: groupId,
-      attachmentId: conId,
-    }
-  });
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs)=>{
+        chrome.tabs.sendMessage(tabs[0].id, {action: "recordEmoticon", data: {
+          emoticonId: groupId,
+          attachmentId: conId,
+        }});
+    });
   }
 });
 

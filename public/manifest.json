@@ -27,7 +27,10 @@
   "content_scripts": [
     {
       "matches": ["https://arca.live/b/*/*"],
-      "js": ["board-content-script.js"]
+      "js": ["board-content-script.js"],
+      "exclude_matches": [
+        "https://arca.live/b/*/*/*"
+      ]
     },
     {
       "matches": ["https://arca.live/e/*"],
