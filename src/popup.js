@@ -330,12 +330,6 @@ document.getElementById('downloadForm').addEventListener('submit', (e) => {
   downloadTags(data.package);
 });
 
-document.getElementById('downloadBoxInit').addEventListener('click', () => {
-  document.querySelectorAll('div#downloadBox sl-checkbox').forEach((el) => {
-    el.checked = false;
-  });
-});
-
 conListup();
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -355,40 +349,64 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 // 검색할 정보들
-const tags = [];
 
-tags.remove = function (index) {
-  this.splice(index, 1);
-}
 
-const tagGroup = document.querySelector('.tags-removable');
-tagGroup.addEventListener('sl-remove', event => {
-  const tag = event.target;
-  const tagData = tag.getAttribute('data-tag');
-  const tagIndex = tags.indexOf(tagData);
-  tag.style.opacity = '0';
+import ArcaconTagSearch from './search'
 
-  tags.remove(tagIndex);
-  tag.remove();
+// 검색결과 이벤트. 결과는 작성 가능한 이미지 엘리먼트
+const searchResult = document.getElementById('searchResult')
+const searchTest = new ArcaconTagSearch(searchResult)
+searchResult.addEventListener('onSearch', (e) => {
+  searchResult.innerHTML = '<span>검색결과</span><br>';
+  // console.log(e.detail);
+
+  e.detail.forEach(con => {
+    const thumbnail = document.createElement('img');
+    thumbnail.setAttribute('loading', 'lazy');
+    thumbnail.setAttribute('class', 'thumbnail');
+    thumbnail.setAttribute('src', URL.createObjectURL(con.image));
+    thumbnail.setAttribute('data-id', con.conId);
+    searchResult.append(thumbnail);
+  });
+
+  
 });
 
+// 단일태그 클릭-삭제 이벤트
+const tagGroup = document.querySelector('.tags-removable');
+tagGroup.addEventListener('sl-remove', event => {
+  const tagClearElement = event.target;
+  const tagData = tagClearElement.getAttribute('data-tag');
+  // const tagIndex = tags.indexOf(tagData);
+  searchTest.remove(tagData);
+  tagClearElement.style.opacity = '0';
+
+  tagClearElement.remove();
+});
+
+// 생성한 태그 전부 삭제
 document.getElementById('removeAllTag').addEventListener('click', (e) => {
   const tagEls = document.querySelectorAll('.tags-removable sl-tag');
   tagEls.forEach((tag) => {
     tag.remove();
   });
-  tags.length = 0;
+  searchTest.clear();
 });
 
+// 삭제 가능한 태그객체 생성
 const tagGround = document.querySelector('.tags-removable');
 document.getElementById('tagInput').addEventListener('submit', (e) => {
   e.preventDefault();
+
+  if(serialize(e.target).tag.trim() === '') return;
+
   const tagInput = serialize(e.target).tag.split(' ');
+  if(tagInput.length === 0) return;
   document.querySelector('#tagInput sl-input').value = '';
   
   while(tagInput.length){
     const t = tagInput.shift();
-    tags.push(t);
+    searchTest.add(t);
     
     const tagEl = document.createElement('sl-tag');
     tagEl.setAttribute('data-tag', t);
@@ -398,26 +416,4 @@ document.getElementById('tagInput').addEventListener('submit', (e) => {
     
     tagGround.append(tagEl);
   }
-
-  // 개발용__________________
-  
-  db.emoticon.where('tags').startsWithAnyOfIgnoreCase(tags).toArray().then((res) => {
-    const board = document.getElementById('searchResult');
-    board.innerHTML = '';
-    
-    const r = res.map(r => { return {image: r.image, conId: r.conId} });
-    // for(b in r){
-    r.forEach((b) => {
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(b.image);
-      img.setAttribute('data-id', b.conId);
-      board.append(img);
-    });
-  });
-
-  // 콘만 따로
-
-
-  
-  // 개발용__________________
 });

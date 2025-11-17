@@ -14,7 +14,7 @@
       내보낼 아카콘의 이름을 선택하세요
       <div id="downloadBox"></div>
       
-      <sl-button slot="footer" variant="primary" id="downloadBoxInit">초기화</sl-button>
+      <sl-button type="reset" slot="footer" variant="primary" id="downloadBoxInit">초기화</sl-button>
       <sl-button type="submit" slot="footer" variant="primary">내보내기</sl-button>
       <sl-button slot="footer" variant="primary" id="closeDialogBtn">닫기</sl-button>
     </sl-dialog>
@@ -39,7 +39,14 @@
     <sl-divider></sl-divider>
 
     <form action="#" id="tagInput">
-      <sl-input name="tag" class="label-on-left" size="small" placeholder="태그입력후 엔터" clearable>
+      <sl-input
+        name="tag"
+        class="label-on-left"
+        size="small"
+        placeholder="태그입력후 엔터"
+        clearable
+        required pattern=".*\S.*" data-error-message="태그는 공백일 수 없습니다."
+      >
         <sl-icon name="search" slot="prefix"></sl-icon>
         <sl-button type="submit" slot="suffix" style="margin: 0;">추가</sl-button>
       </sl-input>
@@ -63,8 +70,15 @@
     <!-- 콘 대표 썸네일을 여기에, 누르면 해당 콘으로 이동 -->
     <div id="conHeaders" class="images-container"></div>
   </nav>
+  
+  <!-- 검색결과 -->
+  <div id="searchResult">
+    <span>검색결과</span>
+  </div>
+  
+  <sl-divider></sl-divider>
 
-  <div id="searchResult"></div>
+  <!-- 다운받은 아카콘들 -->
   <div id="conWrap"></div>
 
   <!-- 서버 토큰발급 -->

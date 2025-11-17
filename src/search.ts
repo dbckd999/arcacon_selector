@@ -1,36 +1,59 @@
-import Dexie from 'dexie';
+import db, { IEmoticon } from './database';
 
-// 데이터베이스에서 가져올 데이터의 구조를 정의합니다.
-interface IEmoticon {
-  conId: number; // sale-content-script.js와 service-worker.ts에 맞춰 number로 변경
-  packageId: number;
-  conOrder?: number;
-  tags?: string[];
-  image?: string;
-  video?: string; // video는 선택적 속성일 수 있습니다.
-}
+// 검색태그배열을 기준으로 행동, 결과를 정의
 
-// Dexie 인스턴스에 테이블의 타입을 알려줍니다.
-class ArcaconDB extends Dexie {
-  emoticon!: Dexie.Table<IEmoticon, [number, number]>; // 복합 기본 키 [packageId, conId]
+class ArcaconTagSearch{
 
-  constructor() {
-    super('Arcacons');
-    this.version(1).stores({ emoticon: '&[packageId+conId], [packageId+conOrder], *tags' });
+  private tags:Set<string> = new Set();
+  private searchResult:IEmoticon[] = [];
+  private resultElement:HTMLElement;
+
+  constructor(resultElement:HTMLElement){
+    this.resultElement = resultElement;
+  }
+
+  // 검색후 이벤트 발생
+  public async search(){
+    if(this.tags.size === 0) {
+      const event = new CustomEvent('onSearch', { detail: [] });
+      this.resultElement.dispatchEvent(event);
+      return;
+    }
+
+    this.searchResult = await 
+    db
+      .emoticon
+      .where('tags')
+      .startsWithAnyOfIgnoreCase(Array.from(this.tags))
+      .toArray();
+    const event = new CustomEvent('onSearch', { detail: this.searchResult });
+    this.resultElement.dispatchEvent(event);
+  }
+
+  public add(inputTag:string):string {
+    this.tags.add(inputTag);
+    this.search();
+    return inputTag;
+  }
+
+  public remove(tag:string):string {
+    this.tags.delete(tag);
+    this.search();
+    return tag;
+  }
+
+  public clear():void {
+    this.tags.clear();
+    this.search();
+  }
+  
+  // GET, SET...
+  public getTags():Set<string> {
+    return this.tags;
+  }
+  public getSearchResult():IEmoticon[] {
+    return this.searchResult;
   }
 }
 
-const arcaconsDB = new ArcaconDB();
-
-// 검색에 필요한 기능
-async function search(term:string) :Promise<IEmoticon[]>{
-  if (!term) return [];
-  let results = await arcaconsDB.emoticon.where('tags').equalsIgnoreCase(term).toArray();
-  console.log(results);
-  return results;
-}
-
-document.getElementById('conSearch')?.addEventListener('input', async (e) => {
-  const term:string = (e.target as HTMLInputElement).value;
-  search(term);
-});
+export default ArcaconTagSearch;
