@@ -14,7 +14,7 @@ body {
 nav {
   position: sticky;
   top: 0;
-  background-color: var(--sl-color-neutral-100);
+  background-color: var(--sl-color-gray-50);
   z-index: 1;
 }
 
@@ -39,4 +39,15 @@ a.in-view sl-avatar::part(base) {
 
 .tags-removable sl-tag {
   transition: var(--sl-transition-medium) opacity;
+}
+
+/* popup.css 파일에 추가 */
+#combo-container {
+  display: flex;
+  align-items: center; /* 요소들을 수직 중앙에 정렬합니다. */
+  gap: 8px; /* 요소들 사이에 간격을 줍니다. */
+}
+
+nav>sl-divider{
+  --spacing: var(--sl-spacing-2x-small);
 }

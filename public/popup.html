@@ -45,8 +45,9 @@
         size="small"
         placeholder="태그입력후 엔터"
         clearable
-        required pattern=".*\S.*" data-error-message="태그는 공백일 수 없습니다."
-      >
+        required pattern=".*\S.*"
+        data-error-message="태그는 공백일 수 없습니다."
+        filled>
         <sl-icon name="search" slot="prefix"></sl-icon>
         <sl-button type="submit" slot="suffix" style="margin: 0;">추가</sl-button>
       </sl-input>
@@ -57,12 +58,12 @@
 
     <sl-divider></sl-divider>
 
-    <div>
+    <div id="combo-container">
       <div id="comboConWrap">
         <!-- 사용할 콤보콘은 여기에 -->
       </div>
-      <sl-switch id="comboCon">콤보콘</sl-switch>
-      <sl-button id="recordCombocon" disabled size="small">콤보콘 작성</sl-button>
+      <sl-switch id="comboCon" size="small">콤보콘</sl-switch>
+      <sl-button id="recordCombocon" disabled size="small">작성</sl-button>
     </div>
 
     <sl-divider></sl-divider>
