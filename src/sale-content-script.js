@@ -67,6 +67,26 @@ function appendTagInput(dataId, tag){
   return inputEl;
 }
 
+function getChosung(str) {
+  const CHOSUNG_LIST = [
+    'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+  ];
+
+  let result = "";
+  for (let i = 0; i < str.length; i++) {
+    const charCode = str.charCodeAt(i);
+
+    // 한글 음절(가-힣) 범위 체크
+    if (charCode >= 0xAC00 && charCode <= 0xD7A3) {
+      const chosungIndex = Math.floor((charCode - 0xAC00) / (21 * 28));
+      result += CHOSUNG_LIST[chosungIndex];
+    } else {
+      // 한글이 아니면 원본 문자 그대로 추가
+      result += str.charAt(i);
+    }
+  }
+  return result;
+}
 conForm.addEventListener('submit', async (event) => {
   // 폼의 기본 제출 동작(페이지 이동)을 막습니다.
   event.preventDefault();
@@ -81,12 +101,19 @@ conForm.addEventListener('submit', async (event) => {
     const match = key.match(/\[(\d+)\]/);
     const dataId = match ? match[1] : key.replace('.[]', '');
 
+    const _value = value.trim();
+
     if (!jsonData[dataId]) {
       jsonData[dataId] = [];
     }
     // 빈 태그는 보내지 않습니다.
-    if (value.trim() !== '') {
-      jsonData[dataId].push(value);
+    if (_value !== '') {
+      jsonData[dataId].push(_value);
+      
+      const chosung = getChosung(_value);
+      if (chosung !== _value) {
+        jsonData[dataId].push(chosung);
+      }
     }
   }
   
