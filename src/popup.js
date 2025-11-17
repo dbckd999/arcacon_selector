@@ -7,6 +7,8 @@ import * as JSZip from 'jszip';
 import ScrollSpy from 'scrollspy-js';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
+import './searchDetail'
+
 // 저장된 콘 패키지 목록 순회
 const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
 const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_enabled');
@@ -70,7 +72,12 @@ async function showConPackage(packageId, pakcageName) {
       const conBase = document.createElement('img');
       conBase.setAttribute('loading', 'lazy');
       conBase.setAttribute('class', 'thumbnail');
-      conBase.setAttribute('src', URL.createObjectURL(element.image));
+      // 다운로드 에러나면서 꼬이는듯?
+      try{
+        conBase.setAttribute('src', URL.createObjectURL(element.image));
+      } catch(e){
+        console.error(packageId, pakcageName, element.conId);
+      }
       conBase.setAttribute('data-id', element.conId);
       images_container.append(conBase);
     });
@@ -150,25 +157,6 @@ ScrollSpy.prototype.isInView = function (el) {
   return rect.top <= offset && rect.bottom >= offset;
 }
 
-async function downloadResource(url) {
-  if (!url) return null;
-
-  try{
-    const res = await fetch(url);
-    const type = res.headers.get('Content-Type') || '';
-
-    if (!type.startsWith('image/') && !type.startsWith('video/'))
-      throw new Error(`Unsupported type: ${type}`);
-
-    const b = await res.blob();
-    return b;
-  } catch(error) {
-    console.error('url:', url);
-    console.error('Error downloading resource:', error);
-    return null; // 또는 에러 처리에 따라 다른 값 반환
-  }
-}
-
 async function downloadTags(packageIds){
   const z = JSZip();
   const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -219,11 +207,6 @@ document.getElementById('recordCombocon').addEventListener('click', () => {
     });
 });
 
-// 콤보콘 목록 클릭-삭제
-document.getElementById('comboConWrap').addEventListener('click', () => {
-  console.log('asdf');
-});
-
 const dialog = document.querySelector('.dialog-overview');
 const openButton = document.getElementById('dialog-test');
 const closeButton = document.getElementById('closeDialogBtn');
@@ -254,11 +237,6 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
 document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
-
-// document.getElementById('export-test').addEventListener('click', async () => {
-//   const packageId = "2432";
-//   await downloadTags([packageId]);
-// });
 
 document.getElementById('import-test').addEventListener('click', async () => {
   // 1. 숨겨진 file input 요소를 만듭니다.
@@ -312,6 +290,14 @@ document.getElementById('import-test').addEventListener('click', async () => {
   document.body.removeChild(fileInput);
 });
 
+document.getElementById('downloadForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const data = serialize(e.target);
+  if(data.package === undefined) return;
+  if(typeof(data.package) === 'string') data.package = [data.package];
+  downloadTags(data.package);
+});
+
 customSort.forEach(pid => {
   const box = document.createElement('sl-checkbox');
   box.name = "package"
@@ -322,98 +308,4 @@ customSort.forEach(pid => {
   document.getElementById('downloadBox').append(document.createElement('br'));
 });
 
-document.getElementById('downloadForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const data = serialize(e.target);
-  if(data.package === undefined) return;
-  if(typeof(data.package) === 'string') data.package = [data.package];
-  downloadTags(data.package);
-});
-
 conListup();
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  (async () => {
-  switch (msg.action) {
-    case 'saveArcacons':
-      const data = msg.data;
-      data.map(async (el) => {
-        el.image = await downloadResource(el.image);
-        el.video = await downloadResource(el.video);
-      });
-      console.log(data);
-      break;
-  }
-  })();
-  return true; // 비동기 응답을 위해 true를 반환합니다.
-});
-
-// 검색할 정보들
-
-
-import ArcaconTagSearch from './search'
-
-// 검색결과 이벤트. 결과는 작성 가능한 이미지 엘리먼트
-const searchResult = document.getElementById('searchResult')
-const searchTest = new ArcaconTagSearch(searchResult)
-searchResult.addEventListener('onSearch', (e) => {
-  searchResult.innerHTML = '<span>검색결과</span><br>';
-  // console.log(e.detail);
-
-  e.detail.forEach(con => {
-    const thumbnail = document.createElement('img');
-    thumbnail.setAttribute('loading', 'lazy');
-    thumbnail.setAttribute('class', 'thumbnail');
-    thumbnail.setAttribute('src', URL.createObjectURL(con.image));
-    thumbnail.setAttribute('data-id', con.conId);
-    searchResult.append(thumbnail);
-  });
-
-  
-});
-
-// 단일태그 클릭-삭제 이벤트
-const tagGroup = document.querySelector('.tags-removable');
-tagGroup.addEventListener('sl-remove', event => {
-  const tagClearElement = event.target;
-  const tagData = tagClearElement.getAttribute('data-tag');
-  // const tagIndex = tags.indexOf(tagData);
-  searchTest.remove(tagData);
-  tagClearElement.style.opacity = '0';
-
-  tagClearElement.remove();
-});
-
-// 생성한 태그 전부 삭제
-document.getElementById('removeAllTag').addEventListener('click', (e) => {
-  const tagEls = document.querySelectorAll('.tags-removable sl-tag');
-  tagEls.forEach((tag) => {
-    tag.remove();
-  });
-  searchTest.clear();
-});
-
-// 삭제 가능한 태그객체 생성
-const tagGround = document.querySelector('.tags-removable');
-document.getElementById('tagInput').addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  if(serialize(e.target).tag.trim() === '') return;
-
-  const tagInput = serialize(e.target).tag.split(' ');
-  if(tagInput.length === 0) return;
-  document.querySelector('#tagInput sl-input').value = '';
-  
-  while(tagInput.length){
-    const t = tagInput.shift();
-    searchTest.add(t);
-    
-    const tagEl = document.createElement('sl-tag');
-    tagEl.setAttribute('data-tag', t);
-    tagEl.setAttribute('size', 'small');
-    tagEl.setAttribute('removable', true);
-    tagEl.innerHTML = t;
-    
-    tagGround.append(tagEl);
-  }
-});

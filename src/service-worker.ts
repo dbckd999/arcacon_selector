@@ -92,13 +92,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ status: 'ok', data: result });
         break;
 
-      // case 'getAllHeadIcons':
-      //   {
-      //     const headerIcons = await db.base_emoticon.toArray();
-      //     sendResponse({ status: 'ok', data: headerIcons });
-      //   }
-      //   break;
-
       case 'resourceCollect':
         {
           const { data: els } = msg;
