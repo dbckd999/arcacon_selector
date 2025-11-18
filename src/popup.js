@@ -298,6 +298,36 @@ document.getElementById('downloadForm').addEventListener('submit', (e) => {
   downloadTags(data.package);
 });
 
+//보호화면
+const shild = document.getElementById('shild');
+let shildTimeout;
+
+function showShild() {
+  if (shild) {
+    shild.style.opacity = '1';
+    shild.style.visibility = 'visible';
+    shild.style.pointerEvents = 'auto';
+  }
+}
+
+function hideShildAndResetTimer() {
+  if (shild) {
+    shild.style.opacity = '0';
+    shild.style.visibility = 'hidden';
+    shild.style.pointerEvents = 'none';
+  }
+  clearTimeout(shildTimeout);
+  // 30초 후에 보호화면 표시
+  shildTimeout = setTimeout(showShild, 5000); 
+}
+
+// 초기 타이머 설정
+hideShildAndResetTimer();
+
+// 사용자 활동 감지 이벤트 리스너
+['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
+.forEach(event => document.addEventListener(event, hideShildAndResetTimer));
+
 customSort.forEach(pid => {
   const box = document.createElement('sl-checkbox');
   box.name = "package"

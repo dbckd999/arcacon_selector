@@ -51,3 +51,19 @@ a.in-view sl-avatar::part(base) {
 nav>sl-divider{
   --spacing: var(--sl-spacing-2x-small);
 }
+
+#shild{
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: aliceblue;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  pointer-events: none;
+}
