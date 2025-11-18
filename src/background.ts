@@ -133,3 +133,55 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     })();
   return true;
 });
+
+// 확장 프로그램이 처음 설치되거나, 업데이트되거나, 크롬이 업데이트될 때 실행됩니다.
+chrome.runtime.onInstalled.addListener(() => {
+  // 컨텍스트 메뉴 항목을 생성합니다.
+  chrome.contextMenus.create({
+    id: "popupSetting", // 메뉴 항목의 고유 ID
+    title: "팝업창 설정", // 메뉴에 표시될 텍스트
+    contexts: ["action"], // 'action'은 확장 프로그램 아이콘의 우클릭 메뉴를 의미합니다.
+    enabled: false,
+  });
+});
+
+// 컨텍스트 메뉴 항목이 클릭되었을 때의 리스너를 추가합니다.
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    // 클릭된 메뉴 항목의 ID를 확인합니다.
+    if (info.menuItemId === "popupSetting") {
+        chrome.runtime.getContexts({ contextTypes: ["SIDE_PANEL"]})
+        .then((contexts) => {
+          if (contexts.length > 0) {
+              // 팝업이 열려 있을 때
+              chrome.runtime.sendMessage({ action: "popupSettingMessage" });
+          } else {
+              // 팝업이 닫혀 있을 때
+              chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon_48.png',
+                title: '메뉴 클릭!',
+                message: '특별한 기능이 실행되었습니다.'
+              });
+          }
+        });
+    }
+});
+
+// background.js
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === "sidepanel-connection") {
+    console.log("📥 연결됨:", port);
+    chrome.contextMenus.update("popupSetting", {
+      title: "팝업창설정",
+      enabled: true
+    });
+
+    port.onDisconnect.addListener(() => {
+      console.log("📤 연결 해제됨:", port);
+      chrome.contextMenus.update("popupSetting", {
+          title: "팝업창설정-패널을 열어주세요",
+          enabled: false 
+        });
+    });
+  }
+});

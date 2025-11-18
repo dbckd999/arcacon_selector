@@ -13,12 +13,20 @@
     "default_path": "popup.html"
   },
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "background.js"
   },
   "action": {
     "default_title": "Arcacon_selector"
   },
-  "permissions": ["tabs", "storage", "identity", "sidePanel", "downloads"],
+  "permissions": [
+    "tabs",
+    "storage",
+    "identity",
+    "sidePanel",
+    "downloads",
+    "contextMenus",
+    "notifications"
+  ],
   "host_permissions": [
     "https://auth.dbckd999.xyz/*",
     "https://api.dbckd999.xyz/*",
@@ -26,20 +34,34 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://arca.live/b/*/*"],
-      "js": ["board-content-script.js"],
+      "matches": [
+        "https://arca.live/b/*/*"
+      ],
+      "js": [
+        "board-content-script.js"
+      ],
       "exclude_matches": [
         "https://arca.live/b/*/*/*"
       ]
     },
     {
-      "matches": ["https://arca.live/e/*"],
-      "css": ["sale-content-script.css"],
-      "js": ["sale-content-script.js"]
+      "matches": [
+        "https://arca.live/e/*"
+      ],
+      "css": [
+        "sale-content-script.css"
+      ],
+      "js": [
+        "sale-content-script.js"
+      ]
     },
     {
-      "matches": ["https://arca.live/settings/emoticons"],
-      "js": ["order-content-script.js"]
+      "matches": [
+        "https://arca.live/settings/emoticons"
+      ],
+      "js": [
+        "order-content-script.js"
+      ]
     }
   ]
 }

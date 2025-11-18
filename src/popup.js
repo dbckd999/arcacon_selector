@@ -7,6 +7,9 @@ import * as JSZip from 'jszip';
 import ScrollSpy from 'scrollspy-js';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
+// 백그라운드 스크립트와 연결하여 패널의 열림/닫힘 상태를 알립니다.
+chrome.runtime.connect({ name: "sidepanel-connection" });
+
 import './searchDetail'
 
 // 저장된 콘 패키지 목록 순회
@@ -207,12 +210,12 @@ document.getElementById('recordCombocon').addEventListener('click', () => {
     });
 });
 
-const dialog = document.querySelector('.dialog-overview');
-const openButton = document.getElementById('dialog-test');
-const closeButton = document.getElementById('closeDialogBtn');
+// const dialog = document.querySelector('.dialog-overview');
+// const openButton = document.getElementById('dialog-test');
+// const closeButton = document.getElementById('closeDialogBtn');
 
-openButton.addEventListener('click', () => dialog.show());
-closeButton.addEventListener('click', () => dialog.hide());
+// openButton.addEventListener('click', () => dialog.show());
+// closeButton.addEventListener('click', () => dialog.hide());
 
 // 아카콘 클릭
 document.getElementById('conWrap').addEventListener('click', async (e) => {
@@ -339,3 +342,10 @@ customSort.forEach(pid => {
 });
 
 conListup();
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if(msg.action === 'popupSettingMessage'){
+      const dialog = document.querySelector('.dialog-overview');
+      dialog.show()
+    }
+});

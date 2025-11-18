@@ -27,7 +27,7 @@ orderApplyBtn.addEventListener('click', () => {
   console.log('Disabled:', disabled);
   console.log('Expired:', expired);
 
-  // 수집한 데이터를 service-worker로 전송합니다.
+  // 수집한 데이터를 background로 전송합니다.
   chrome.runtime.sendMessage({
     action: 'orderUpdated',
     data: {
