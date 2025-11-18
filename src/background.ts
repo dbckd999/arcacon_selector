@@ -170,14 +170,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 // background.js
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === "sidepanel-connection") {
-    console.log("📥 연결됨:", port);
     chrome.contextMenus.update("popupSetting", {
       title: "팝업창설정",
       enabled: true
     });
 
     port.onDisconnect.addListener(() => {
-      console.log("📤 연결 해제됨:", port);
       chrome.contextMenus.update("popupSetting", {
           title: "팝업창설정-패널을 열어주세요",
           enabled: false 

@@ -7,6 +7,8 @@ import * as JSZip from 'jszip';
 import ScrollSpy from 'scrollspy-js';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
+import './popupSetting'
+
 // 백그라운드 스크립트와 연결하여 패널의 열림/닫힘 상태를 알립니다.
 chrome.runtime.connect({ name: "sidepanel-connection" });
 

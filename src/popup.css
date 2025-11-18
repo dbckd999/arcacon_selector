@@ -67,3 +67,7 @@ nav>sl-divider{
   transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
   pointer-events: none;
 }
+
+:root {
+  --sl-focus-ring: 0 0 0 2px;
+}

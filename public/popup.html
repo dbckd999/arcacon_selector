@@ -17,46 +17,58 @@
       <sl-tab slot="nav" panel="export">내보내기</sl-tab>
       <sl-tab slot="nav" panel="import">가져오기</sl-tab>
       <sl-tab slot="nav" panel="setting">기타설정</sl-tab>
+      <!-- <sl-tab slot="nav" panel="account">계정</sl-tab> -->
 
       <sl-tab-panel name="export">
         <form id="downloadForm">
-          내보낼 아카콘의 이름을 선택하세요
+          <h3>내보낼 태그의 아카콘을 선택하세요</h3>
           <div id="downloadBox"></div>
-          
+          <br>
           <sl-button type="reset" slot="footer" variant="primary" id="downloadBoxInit">초기화</sl-button>
           <sl-button type="submit" slot="footer" variant="primary">내보내기</sl-button>
-          <!-- <sl-button slot="footer" variant="primary" id="closeDialogBtn">닫기</sl-button> -->
         </form>
       </sl-tab-panel>
+      
       <sl-tab-panel name="import">
+        <h3>가져올 태그파일을 입력해 주세요</h3>
         버튼을 누르거나 파일을 올려주세요
         <sl-button id="import-test" size="small">import</sl-button>
       </sl-tab-panel>
-      <sl-tab-panel name="setting">
-        <!-- 대기화면 설정시간 변경 -->
-        <!-- 도네..돈내.. -->
+
+      <sl-tab-panel name="setting" id="setting">
+
         <sl-button id="listModify" size="small">콘목록 수정</sl-button>
+        
+        <sl-divider></sl-divider>
+
+        <h4>대기화면 설정시간 변경</h4>
+        <sl-switch data-setting="isSleep" name="sleepEnable">활성</sl-switch>
+        <br>
+        <br>
+        <sl-input data-setting="sleepTime" type="number" name="time" size="small" value="10"></sl-input> 
+
+        <sl-divider></sl-divider>
+
+        <!-- 아카콘 크기 설정 -->
+        <form id="conSizeForm">
+          <h4>아카콘 크기 변경</h4>
+          <br>
+          <sl-input data-setting="conSize" type="number" name="time" size="small" value="10"></sl-input> 
+        </form>
+
       </sl-tab-panel>
+      <!-- <sl-tab-panel name="account"> -->
+        <!-- 인증/인가기능 -->
+        <!-- <sl-button id="authsl-button">구글로 시작</sl-button> -->
+        <!-- <sl-button id="getAccess">엑세스토큰 재발급</sl-button> -->
+        <!-- <sl-button id="secureBtn">태그데이터 요청</sl-button> -->
+        <!-- <sl-button id="new_test">토큰 테스트</sl-button> -->
+      <!-- </sl-tab-panel> -->
     </sl-tab-group>
   </sl-dialog>
 
 
   <nav>
-    <!-- 인증/인가기능 -->
-    <!-- <sl-button id="authsl-button">구글로 시작!</sl-button> -->
-    <!-- <sl-button id="getAccess">엑세스토큰 재발급</sl-button> -->
-    <!-- <sl-button id="secureBtn">태그데이터 요청</sl-button> -->
-    <!-- <sl-button id="new_test">토큰 테스트</sl-button> -->
-    <!-- <sl-divider></sl-divider> -->
-
-    <!-- 로컬기능 -->
-    <!-- <sl-button id="conListUpdateBtn" size="small">아카콘 목록 가져오기</sl-button> -->
-    <!-- <sl-button id="resourceCollect" size="small">데이터 가져오기</sl-button> -->
-    <!-- <sl-button id="dialog-test" size="small">태그 내보내기</sl-button> -->
-    <!-- <sl-button id="export-test" size="small">export</sl-button> -->
-
-    <sl-divider></sl-divider>
-
     <form action="#" id="tagInput">
       <sl-input
         name="tag"
@@ -86,8 +98,8 @@
     </div>
 
     <sl-divider></sl-divider>
-    
-    <!-- 콘 대표 썸네일을 여기에, 누르면 해당 콘으로 이동 -->
+
+    <!-- 콘 대표 목록. 누르면 해당 콘으로 이동 -->
     <div id="conHeaders" class="images-container"></div>
   </nav>
   
