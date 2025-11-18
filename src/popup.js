@@ -210,13 +210,6 @@ document.getElementById('recordCombocon').addEventListener('click', () => {
     });
 });
 
-// const dialog = document.querySelector('.dialog-overview');
-// const openButton = document.getElementById('dialog-test');
-// const closeButton = document.getElementById('closeDialogBtn');
-
-// openButton.addEventListener('click', () => dialog.show());
-// closeButton.addEventListener('click', () => dialog.hide());
-
 // 아카콘 클릭
 document.getElementById('conWrap').addEventListener('click', async (e) => {
   // 클릭된 요소가 .thumbnail인지 확인
@@ -237,10 +230,12 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   }
 });
 
+// 목록 수정하러가기
 document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
 
+// 태그데이터 가져오기
 document.getElementById('import-test').addEventListener('click', async () => {
   // 1. 숨겨진 file input 요소를 만듭니다.
   const fileInput = document.createElement('input');
@@ -348,4 +343,41 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const dialog = document.querySelector('.dialog-overview');
       dialog.show()
     }
+});
+
+// 아카콘 대표목록 가로휠 적용
+document.getElementById('conHeaders').addEventListener('wheel', (e) => {
+  if (e.deltaX === 0 && Math.abs(e.deltaY) > 0) {
+    conHeaders.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+});
+
+// 네비게이션 아이템 클릭 시 오프셋을 적용하여 스크롤하는 기능
+document.getElementById('conHeaders').addEventListener('click', (e) => {
+  // 클릭된 요소가 <a> 태그인지 확인
+  const anchor = e.target.closest('a');
+  if (!anchor) return;
+
+  // 기본 앵커 동작(즉시 스크롤)을 막습니다.
+  e.preventDefault();
+
+  const href = anchor.getAttribute('href');
+  if (!href || href === '#') return;
+
+  const targetId = href.substring(1);
+  const targetElement = document.getElementById(targetId);
+
+  if (targetElement) {
+    const navBar = document.querySelector('nav');
+    const navHeight = navBar ? navBar.offsetHeight : 0;
+    // isInView에서 사용한 오프셋과 동일하게 설정
+    const offset = navHeight;
+
+    const elementPosition = targetElement.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + document.documentElement.scrollTop - offset;
+
+    // 계산된 위치로 부드럽게 스크롤
+    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+  }
 });
