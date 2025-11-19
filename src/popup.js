@@ -49,6 +49,9 @@ async function showConPackage(packageId, pakcageName) {
   // 아카콘 제목
   const title = document.createElement('span');
   title.textContent = pakcageName;
+  title.addEventListener('click', (e)=>{
+    chrome.tabs.update({ url: `https://arca.live/e/${packageId}` });
+  });
   thumbnail_wrapper.append(title);
   thumbnail_wrapper.append(document.createElement('br'));
 
@@ -299,13 +302,23 @@ document.getElementById('downloadForm').addEventListener('submit', (e) => {
 });
 
 customSort.forEach(pid => {
+  const outmsg = document.createElement('sl-icon');
+  outmsg.setAttribute('name', 'box-arrow-up-right');
+  outmsg.style.paddingLeft = '5px';
+  outmsg.addEventListener('click', () => {
+    chrome.tabs.update({ url: `https://arca.live/e/${pid}` });
+  });
+
   const box = document.createElement('sl-checkbox');
   box.name = "package"
   box.value = pid;
-  box.innerHTML = packageList[pid].packageName;
+  box.innerHTML = packageList[pid].packageName + '  ';
+  
+  const li = document.createElement('li');
+  li.append(box);
+  li.append(outmsg);
 
-  document.getElementById('downloadBox').append(box);
-  document.getElementById('downloadBox').append(document.createElement('br'));
+  document.getElementById('downloadBox').append(li);
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
