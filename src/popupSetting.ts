@@ -1,7 +1,10 @@
+import { notify } from './notify';
+
 // popup.js의 설정들
 const settingGround = document.querySelectorAll('#setting [data-setting]');
 settingGround.forEach(el => el.addEventListener('sl-change', setSetting));
-// init
+
+// 설정값 입력
 let setting:{ [key: string]: string } = {};
 chrome.storage.local.get('arcacon_setting').then(res => {
     setting = res['arcacon_setting'] || {};
@@ -32,6 +35,7 @@ function setSetting(event:Event) {
     }
     setting[key] = value;
     chrome.storage.local.set({ 'arcacon_setting':setting });
+
+    // 재시작 알림
+    notify('설정반영을 위해 다시 열어주세요.');
 }
-
-

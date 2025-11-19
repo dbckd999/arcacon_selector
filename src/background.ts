@@ -143,28 +143,23 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["action"], // 'action'은 확장 프로그램 아이콘의 우클릭 메뉴를 의미합니다.
     enabled: false,
   });
-});
 
-// 컨텍스트 메뉴 항목이 클릭되었을 때의 리스너를 추가합니다.
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    // 클릭된 메뉴 항목의 ID를 확인합니다.
-    if (info.menuItemId === "popupSetting") {
-        chrome.runtime.getContexts({ contextTypes: ["SIDE_PANEL"]})
-        .then((contexts) => {
-          if (contexts.length > 0) {
-              // 팝업이 열려 있을 때
-              chrome.runtime.sendMessage({ action: "popupSettingMessage" });
-          } else {
-              // 팝업이 닫혀 있을 때
-              chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon_48.png',
-                title: '메뉴 클릭!',
-                message: '특별한 기능이 실행되었습니다.'
-              });
-          }
-        });
-    }
+  interface Setting {
+    isSleep?: string,
+    sleepTime?: string,
+    conSize?: string,
+  }
+  // 설정 기본값
+  chrome.storage.local.get('arcacon_setting')
+  .then(res => {
+      let setting:Setting = res.arcacon_setting || {};
+
+      if(!('isSleep' in setting)) setting.isSleep = 'true';
+      if(!('sleepTime' in setting)) setting.sleepTime = '3000';
+      if(!('conSize' in setting)) setting.conSize = '50';
+
+      chrome.storage.local.set({ arcacon_setting: setting });
+  });
 });
 
 // background.js

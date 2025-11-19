@@ -12,12 +12,31 @@
 
   <div id="shild">보호화면입니다. 커서를 움직이면 풀립니다.</div>
 
-  <sl-dialog label="설정" class="dialog-overview">
+  <sl-dialog label="설정/관리" class="dialog-overview">
     <sl-tab-group>
+      <sl-tab slot="nav" panel="setting">설정</sl-tab>
       <sl-tab slot="nav" panel="export">내보내기</sl-tab>
       <sl-tab slot="nav" panel="import">가져오기</sl-tab>
-      <sl-tab slot="nav" panel="setting">기타설정</sl-tab>
       <!-- <sl-tab slot="nav" panel="account">계정</sl-tab> -->
+
+      <sl-tab-panel name="setting" id="setting">
+
+        <sl-button id="listModify" size="small">콘목록 수정</sl-button>
+        
+        <sl-divider></sl-divider>
+
+        <h4>대기화면</h4>
+        <sl-switch data-setting="isSleep" name="sleepEnable">활성</sl-switch>
+        <br>
+        <br>
+        <sl-input data-setting="sleepTime" type="number" size="small" value="10" help-text="단위: 밀리초(ms)"></sl-input>
+        
+        <sl-divider></sl-divider>
+        
+        <!-- 아카콘 크기 설정 -->
+        <h4>아카콘 크기 변경</h4>
+        <sl-input data-setting="conSize" type="number" size="small" value="10" help-text="단위: 픽셀(px)"></sl-input>
+      </sl-tab-panel>
 
       <sl-tab-panel name="export">
         <form id="downloadForm">
@@ -35,28 +54,6 @@
         <sl-button id="import-test" size="small">import</sl-button>
       </sl-tab-panel>
 
-      <sl-tab-panel name="setting" id="setting">
-
-        <sl-button id="listModify" size="small">콘목록 수정</sl-button>
-        
-        <sl-divider></sl-divider>
-
-        <h4>대기화면 설정시간 변경</h4>
-        <sl-switch data-setting="isSleep" name="sleepEnable">활성</sl-switch>
-        <br>
-        <br>
-        <sl-input data-setting="sleepTime" type="number" name="time" size="small" value="10"></sl-input> 
-
-        <sl-divider></sl-divider>
-
-        <!-- 아카콘 크기 설정 -->
-        <form id="conSizeForm">
-          <h4>아카콘 크기 변경</h4>
-          <br>
-          <sl-input data-setting="conSize" type="number" name="time" size="small" value="10"></sl-input> 
-        </form>
-
-      </sl-tab-panel>
       <!-- <sl-tab-panel name="account"> -->
         <!-- 인증/인가기능 -->
         <!-- <sl-button id="authsl-button">구글로 시작</sl-button> -->
@@ -102,6 +99,9 @@
     <!-- 콘 대표 목록. 누르면 해당 콘으로 이동 -->
     <div id="conHeaders" class="images-container"></div>
   </nav>
+
+  <!-- popup.js에서 아카콘 스타일 정의 -->
+  <style id="conStyle"></style>
   
   <!-- 검색결과 -->
   <div id="searchResult">

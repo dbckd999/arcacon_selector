@@ -298,36 +298,6 @@ document.getElementById('downloadForm').addEventListener('submit', (e) => {
   downloadTags(data.package);
 });
 
-//보호화면
-const shild = document.getElementById('shild');
-let shildTimeout;
-
-function showShild() {
-  if (shild) {
-    shild.style.opacity = '1';
-    shild.style.visibility = 'visible';
-    shild.style.pointerEvents = 'auto';
-  }
-}
-
-function hideShildAndResetTimer() {
-  if (shild) {
-    shild.style.opacity = '0';
-    shild.style.visibility = 'hidden';
-    shild.style.pointerEvents = 'none';
-  }
-  clearTimeout(shildTimeout);
-  // 30초 후에 보호화면 표시
-  shildTimeout = setTimeout(showShild, 5000); 
-}
-
-// 초기 타이머 설정
-hideShildAndResetTimer();
-
-// 사용자 활동 감지 이벤트 리스너
-['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
-.forEach(event => document.addEventListener(event, hideShildAndResetTimer));
-
 customSort.forEach(pid => {
   const box = document.createElement('sl-checkbox');
   box.name = "package"
@@ -337,8 +307,6 @@ customSort.forEach(pid => {
   document.getElementById('downloadBox').append(box);
   document.getElementById('downloadBox').append(document.createElement('br'));
 });
-
-conListup();
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if(msg.action === 'popupSettingMessage'){
@@ -381,5 +349,56 @@ document.getElementById('conHeaders').addEventListener('click', (e) => {
 
     // 계산된 위치로 부드럽게 스크롤
     window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+  }
+});
+
+// 설정값 불러온 뒤 동작
+chrome.storage.local.get('arcacon_setting').then(res => {
+  const setting = res.arcacon_setting;
+
+  // 절전화면 활성
+  if(setting.isSleep == 'true'){
+    // 절전화면 시작시간
+    if(setting.sleepTime){
+
+      //보호화면
+      const shild = document.getElementById('shild');
+      let shildTimeout;
+
+      function showShild() {
+        if (shild) {
+          shild.style.opacity = '1';
+          shild.style.visibility = 'visible';
+          shild.style.pointerEvents = 'auto';
+        }
+      }
+
+      function hideShildAndResetTimer() {
+        if (shild) {
+          shild.style.opacity = '0';
+          shild.style.visibility = 'hidden';
+          shild.style.pointerEvents = 'none';
+        }
+        clearTimeout(shildTimeout);
+        shildTimeout = setTimeout(showShild, Number(setting.sleepTime));
+      }
+
+      // 초기 타이머 설정
+      hideShildAndResetTimer();
+
+      // 사용자 활동 감지 이벤트 리스너
+      ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
+        .forEach(event => document.addEventListener(event, hideShildAndResetTimer));
+    }
+  }
+  // 아카콘 크기
+  if(setting.conSize){
+    document.getElementById('conStyle').innerText = `
+    .images-container img {
+      width: ${setting.conSize}px;
+      height: ${setting.conSize}px;
+    }
+    `;
+    conListup();
   }
 });
