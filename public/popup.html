@@ -10,7 +10,7 @@
 
 <body>
 
-  <div id="shild">보호화면입니다. 커서를 움직이면 풀립니다.</div>
+  <div id="shild">보호화면입니다. 커서를 올리면 사라집니다.</div>
 
   <sl-dialog label="설정/관리" class="dialog-overview">
     <sl-tab-group>
@@ -29,12 +29,14 @@
         <sl-switch data-setting="isSleep" name="sleepEnable">활성</sl-switch>
         <br>
         <br>
-        <sl-input data-setting="sleepTime" type="number" size="small" value="10" help-text="단위: 밀리초(ms)"></sl-input>
-        
+        <sl-input data-setting="sleepTime" label="가리기 지연시간" type="number" size="small" value="-1" help-text="단위: 밀리초(ms)"></sl-input>
+        <br>
+        <sl-range data-setting="sleepOpacity" label="투명도" min="0" max="1" step="0.01"></sl-range>
+
         <sl-divider></sl-divider>
         
         <!-- 아카콘 크기 설정 -->
-        <h4>아카콘 크기 변경</h4>
+        <h4>아카콘 크기</h4>
         <sl-input data-setting="conSize" type="number" size="small" value="10" help-text="단위: 픽셀(px)"></sl-input>
       </sl-tab-panel>
 
@@ -52,6 +54,9 @@
         <h3>가져올 태그파일을 입력해 주세요</h3>
         버튼을 누르거나 파일을 올려주세요
         <sl-button id="import-test" size="small">import</sl-button>
+        <sl-tag variant="warning">
+          <sl-icon style="padding-right: 5px;" name="exclamation-triangle"></sl-icon>다운로드된 아카콘 이미지에만 적용됩니다.
+        </sl-tag>
       </sl-tab-panel>
 
       <!-- <sl-tab-panel name="account"> -->

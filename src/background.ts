@@ -148,6 +148,7 @@ chrome.runtime.onInstalled.addListener(() => {
     isSleep?: string,
     sleepTime?: string,
     conSize?: string,
+    opacity?: string,
   }
   // 설정 기본값
   chrome.storage.local.get('arcacon_setting')
@@ -157,6 +158,7 @@ chrome.runtime.onInstalled.addListener(() => {
       if(!('isSleep' in setting)) setting.isSleep = 'true';
       if(!('sleepTime' in setting)) setting.sleepTime = '3000';
       if(!('conSize' in setting)) setting.conSize = '50';
+      if(!('opacity' in setting)) setting.opacity = '50';
 
       chrome.storage.local.set({ arcacon_setting: setting });
   });
@@ -176,5 +178,14 @@ chrome.runtime.onConnect.addListener((port) => {
           enabled: false 
         });
     });
+  }
+});
+
+// 컨텍스트 메뉴 클릭 이벤트 리스너
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  // 클릭된 메뉴의 ID가 "popupSetting"인지 확인합니다.
+  if (info.menuItemId === "popupSetting") {
+    // 팝업(사이드 패널)에 메시지를 보내 설정 다이얼로그를 열도록 합니다.
+    chrome.runtime.sendMessage({ action: 'popupSettingMessage' });
   }
 });

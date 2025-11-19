@@ -207,6 +207,14 @@ document.getElementById('comboCon').addEventListener('sl-change', (e) => {
   }
 });
 
+// 콤보콘 이미지클릭시 삭제
+document.getElementById('comboConWrap').addEventListener('click', (e) => {
+  const thumbnail = e.target.closest('img');
+  if (thumbnail) {
+    thumbnail.remove();
+  }
+});
+
 // 콤보콘 게시
 document.getElementById('recordCombocon').addEventListener('click', () => {
   chrome.tabs.query({active: true, currentWindow: true}, async (tabs)=>{
@@ -223,15 +231,20 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   const thumbnail = e.target.closest('.thumbnail');
   const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
 
-  if (conId && isCombo) {
-    addCombocon(groupId, conId, thumbnail.cloneNode(true));
-  } else {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs)=>{
-        chrome.tabs.sendMessage(tabs[0].id, {action: "recordEmoticon", data: {
-          emoticonId: groupId,
-          attachmentId: conId,
-        }});
-    });
+  if(thumbnail){
+    if (conId && isCombo) {
+      addCombocon(groupId, conId, thumbnail.cloneNode(true));
+    } else {
+      chrome.tabs.query({active: true, currentWindow: true}, (tabs)=>{
+          chrome.tabs.sendMessage(tabs[0].id, {action: "recordEmoticon", data: {
+            emoticonId: groupId,
+            attachmentId: conId,
+          }}).catch(e => {
+            notify(e, 'danger');
+            console.error(e);
+          });
+      });
+    }
   }
 });
 
@@ -376,32 +389,28 @@ chrome.storage.local.get('arcacon_setting').then(res => {
 
       //보호화면
       const shild = document.getElementById('shild');
+      const root = document.querySelector('html');
       let shildTimeout;
 
       function showShild() {
-        if (shild) {
-          shild.style.opacity = '1';
-          shild.style.visibility = 'visible';
-          shild.style.pointerEvents = 'auto';
-        }
-      }
-
-      function hideShildAndResetTimer() {
-        if (shild) {
-          shild.style.opacity = '0';
-          shild.style.visibility = 'hidden';
-          shild.style.pointerEvents = 'none';
-        }
         clearTimeout(shildTimeout);
-        shildTimeout = setTimeout(showShild, Number(setting.sleepTime));
+        shildTimeout = setTimeout(() => {
+          if (shild) {
+            shild.style.opacity = setting.sleepOpacity,
+            shild.style.visibility = 'visible';
+          }
+        }, Number(setting.sleepTime));
       }
 
-      // 초기 타이머 설정
-      hideShildAndResetTimer();
+      function hideShild() {
+        if (shild) {
+        shild.style.opacity = '0';
+        shild.style.visibility = 'hidden';
+        }
+      }
 
-      // 사용자 활동 감지 이벤트 리스너
-      ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
-        .forEach(event => document.addEventListener(event, hideShildAndResetTimer));
+      root.addEventListener('mouseenter', hideShild);
+      root.addEventListener('mouseleave', showShild);
     }
   }
   // 아카콘 크기
