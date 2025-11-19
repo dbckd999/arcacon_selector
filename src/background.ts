@@ -148,7 +148,7 @@ chrome.runtime.onInstalled.addListener(() => {
     isSleep?: string,
     sleepTime?: string,
     conSize?: string,
-    opacity?: string,
+    sleepOpacity?: string,
   }
   // 설정 기본값
   chrome.storage.local.get('arcacon_setting')
@@ -158,7 +158,7 @@ chrome.runtime.onInstalled.addListener(() => {
       if(!('isSleep' in setting)) setting.isSleep = 'true';
       if(!('sleepTime' in setting)) setting.sleepTime = '3000';
       if(!('conSize' in setting)) setting.conSize = '50';
-      if(!('opacity' in setting)) setting.opacity = '50';
+      if(!('sleepOpacity' in setting)) setting.sleepOpacity = '50';
 
       chrome.storage.local.set({ arcacon_setting: setting });
   });

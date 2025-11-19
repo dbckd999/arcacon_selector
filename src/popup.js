@@ -404,8 +404,9 @@ chrome.storage.local.get('arcacon_setting').then(res => {
 
       function hideShild() {
         if (shild) {
-        shild.style.opacity = '0';
-        shild.style.visibility = 'hidden';
+          clearTimeout(shildTimeout);
+          shild.style.opacity = '0';
+          shild.style.visibility = 'hidden';
         }
       }
 
