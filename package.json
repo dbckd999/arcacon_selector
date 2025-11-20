@@ -25,6 +25,10 @@
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.20.1",
+    "@uppy/core": "^5.1.1",
+    "@uppy/dashboard": "^5.0.4",
+    "@uppy/drag-drop": "^5.0.2",
+    "@uppy/locales": "^5.0.1",
     "dexie": "^4.2.1",
     "glob": "^11.0.3",
     "jszip": "^3.10.1",
