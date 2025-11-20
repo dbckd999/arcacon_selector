@@ -253,59 +253,6 @@ document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
 
-// 태그데이터 가져오기
-document.getElementById('import-test').addEventListener('click', async () => {
-  // 1. 숨겨진 file input 요소를 만듭니다.
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = '.json'; // JSON 파일만 선택하도록 필터링
-  fileInput.style.display = 'none';
-
-  // 2. 파일이 선택되면 처리할 이벤트 리스너를 추가합니다.
-  fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const content = e.target.result;
-        const dataToImport = JSON.parse(content);
-        console.log(dataToImport);
-
-        // indexedDB 바인딩
-        const pId = Object.keys(dataToImport)[0];
-        const conIds = Object.keys(dataToImport[pId]);
-        const toDB = [];
-        for (const conId of conIds) {
-          toDB.push({
-            packageId: Number(pId),
-            conId: Number(conId),
-            tags: dataToImport[pId][conId],
-          });
-        }
-        console.log(toDB);
-
-        const response = await chrome.runtime.sendMessage({ action: 'updateTags', data: toDB });
-        if (response.status === 'ok') {
-          notify(response.message, 'success');
-        } else {
-          notify(response.message, 'danger');
-        }
-      } catch (error) {
-        console.error('파일을 읽거나 파싱하는 중 오류 발생:', error);
-        notify('유효하지 않은 JSON 파일입니다.', 'exclamation-triangle');
-      }
-    };
-    reader.readAsText(file);
-  });
-
-  // 4. 파일 선택 창을 엽니다.
-  document.body.appendChild(fileInput);
-  fileInput.click();
-  document.body.removeChild(fileInput);
-});
-
 document.getElementById('downloadForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const data = serialize(e.target);

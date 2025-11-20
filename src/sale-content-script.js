@@ -94,6 +94,7 @@ conForm.addEventListener('submit', async (event) => {
   const formData = new FormData(conForm);
   console.log(formData.keys());
   const jsonData = {};
+  // 키: 콘ID, 값: [태그...]
 
   // FormData를 순회하며 JSON 객체를 만듭니다.
   for (const [key, value] of formData.entries()) {
@@ -102,18 +103,18 @@ conForm.addEventListener('submit', async (event) => {
     const dataId = match ? match[1] : key.replace('.[]', '');
 
     const _value = value.trim();
+    if(_value === '') continue;
 
-    if (!jsonData[dataId]) {
-      jsonData[dataId] = [];
+    if(!(dataId in jsonData)){
+      jsonData[dataId] = {};
+      jsonData[dataId]['tags'] = new Set();
+      jsonData[dataId]['chosung'] = new Set();
     }
-    // 빈 태그는 보내지 않습니다.
-    if (_value !== '') {
-      jsonData[dataId].push(_value);
-      
-      const chosung = getChosung(_value);
-      if (chosung !== _value) {
-        jsonData[dataId].push(chosung);
-      }
+
+    jsonData[dataId]['tags'].add(_value);
+    const chungValue = getChosung(_value);
+    if(chungValue !== _value){
+      jsonData[dataId]['chosung'].add(chungValue);
     }
   }
   
@@ -125,7 +126,8 @@ conForm.addEventListener('submit', async (event) => {
     mapped.push({
       packageId: packageId,
       conId: Number(key),
-      tags: jsonData[key]
+      tags: Array.from(jsonData[key]['tags']),
+      chosung: Array.from(jsonData[key]['chosung']),
     });
   }
 

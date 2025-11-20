@@ -35,6 +35,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             key: item.conId,
             changes: { 
               tags: item.tags,
+              chosung: item.chosung,
             }
           }));
           console.log(updates);

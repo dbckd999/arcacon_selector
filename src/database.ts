@@ -5,6 +5,7 @@ export interface IEmoticon {
   conId: number;
   conOrder?: number;
   tags?: string[];
+  chosung?: string[];
   // Blob 타입으로 변경하여 데이터베이스에 직접 저장
   image?: Blob;
   video?: Blob;
@@ -25,7 +26,7 @@ class ArcaconDB extends Dexie {
     super('Arcacons');
     this.version(1).stores({
       // 기본키는 conId, packageId와 tags는 인덱싱합니다.
-      emoticon: 'conId, packageId, *tags',
+      emoticon: 'conId, packageId, *tags, *chosung',
       base_emoticon: 'packageId',
     });
   }
