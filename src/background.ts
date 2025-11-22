@@ -130,7 +130,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ status: 'error', message: e.message });
         }
         break;
-      }
+        
+        case 'search':
+          if(fuse === null) {
+            sendResponse({ status: 'ok', message: '인덱싱중입니다' });
+          } else {
+            const { data } = msg;
+            let searchResult = fuse.search(data.join(' '));
+            const conIds: number[] = [];
+            searchResult.forEach(dict => {
+              conIds.push(dict.item.conId);
+            });
+            sendResponse({ status: 'ok', data: conIds});
+          }
+          break;
+        }
     })();
   return true;
 });
@@ -190,3 +204,34 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.runtime.sendMessage({ action: 'popupSettingMessage' });
   }
 });
+
+// 검색관련 기능
+// 인덱스데이터 유지를 위해 백그라운드에서 실행
+// 아예없다면 db쿼리
+
+import Fuse from 'fuse.js';
+let fuse: Fuse<any> | null = null;
+indexing().then(f => fuse = f);
+
+async function indexing(){
+  const fuseOption = {
+    keys: [
+      "tags",
+      "chosung"
+    ],
+    threshold: 0,
+    useExtendedSearch: true,
+  }
+  // const updated = await chrome.storage.local.get('indexUpdating');
+  const emoticons = await db.emoticon.toArray();
+  let index = null;
+
+  // if(updated.indexUpdating){
+    index = Fuse.createIndex(fuseOption.keys, emoticons);
+    // db.search_index.put(index.toJSON(), 1);
+  // } else {
+    // const query = await db.search_index.get(1);
+    // index = Fuse.parseIndex(query);
+  // }
+  return new Fuse(emoticons, fuseOption, index);
+}

@@ -26,27 +26,13 @@ class ArcaconTagSearch{
       return;
     }
 
-    const searchA = await db
-      .emoticon
-      .where('tags')
-      .startsWithAnyOfIgnoreCase(Array.from(this.tags))
-      .toArray();
-    console.log(searchA);
-    const searchB = await db
-      .emoticon
-      .where('chosung')
-      .startsWithAnyOfIgnoreCase(Array.from(this.chosung))
-      .toArray();
-    console.log(searchB);
+    const forSearch = Array.from(this.tags).concat(Array.from(this.chosung));
 
-    const combined = searchA.concat(searchB);
-    const uniqueMap = new Map();
-    combined.forEach(item => {
-      const key = `${item.conId}`;
-      uniqueMap.set(key, item);
+    const searchString = await chrome.runtime.sendMessage({ 
+      action: 'search', 
+      data: forSearch
     });
-
-    this.searchResult = Array.from(uniqueMap.values());
+    this.searchResult = searchString.data;
 
     const event = new CustomEvent('onSearch', { detail: this.searchResult });
     this.resultElement.dispatchEvent(event);
@@ -68,6 +54,7 @@ class ArcaconTagSearch{
 
   public clear():void {
     this.tags.clear();
+    this.chosung.clear();
     this.search();
   }
   

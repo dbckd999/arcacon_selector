@@ -2,7 +2,7 @@
 // 검색할 정보들
 import ArcaconTagSearch from './search'
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
-import { IEmoticon } from './database';
+import db from './database';
 
 // 검색결과 이벤트. 결과는 작성 가능한 이미지 엘리먼트
 const searchResult = document.getElementById('searchResult');
@@ -11,20 +11,22 @@ if (!searchResult) {
 }
 
 const searchTest = new ArcaconTagSearch(searchResult);
-searchResult.addEventListener('onSearch', (event: Event) => {
-  const e = event as CustomEvent<IEmoticon[]>;
+searchResult.addEventListener('onSearch', async (event: Event) => {
+  const e = event as CustomEvent<number[]>;
   if (searchResult) {
     searchResult.innerHTML = '<span>검색결과</span><br>';
 
-    e.detail.forEach(con => {
-      if (con.image) {
+    const conIds = e.detail;
+    db.emoticon.bulkGet(conIds)
+    .then(cons => {
+      cons.forEach(con => {
         const thumbnail = document.createElement('img');
         thumbnail.setAttribute('loading', 'lazy');
         thumbnail.setAttribute('class', 'thumbnail');
         thumbnail.src = URL.createObjectURL(con.image);
         thumbnail.setAttribute('data-id', con.conId.toString());
         searchResult.append(thumbnail);
-      }
+      });
     });
   }
 });

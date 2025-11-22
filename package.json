@@ -30,6 +30,7 @@
     "@uppy/drag-drop": "^5.0.2",
     "@uppy/locales": "^5.0.1",
     "dexie": "^4.2.1",
+    "fuse.js": "^7.1.0",
     "glob": "^11.0.3",
     "jszip": "^3.10.1",
     "path": "^0.12.7",

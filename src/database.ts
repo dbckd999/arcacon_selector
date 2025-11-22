@@ -21,6 +21,7 @@ export interface IHeaderIcon {
 class ArcaconDB extends Dexie {
   emoticon!: Dexie.Table<IEmoticon, number>; // 기본 키는 'conId' (number)
   base_emoticon!: Dexie.Table<IHeaderIcon, number>; // 기본 키는 'conId' (number)
+  search_index!: Dexie.Table<any, number>;
 
   constructor() {
     super('Arcacons');
@@ -28,6 +29,7 @@ class ArcaconDB extends Dexie {
       // 기본키는 conId, packageId와 tags는 인덱싱합니다.
       emoticon: 'conId, packageId, *tags, *chosung',
       base_emoticon: 'packageId',
+      search_index: '++id',
     });
   }
 }
