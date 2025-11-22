@@ -26,8 +26,11 @@ async function repleCon(emoticonId, attachmentId) {
     cache: 'no-cache',
   });
   if(res.ok){
-    setTimeout(
-      () => document.querySelector('a.newcomment-alert').click(),
+    setTimeout(()=>{
+      const clickEl = document.querySelector('a.newcomment-alert');
+      clickEl.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      if(clickEl) clickEl.click();
+    },
       1000
     );
   }
@@ -65,7 +68,9 @@ async function repleComboCon(combolist) {
 
   if(commentRes.ok){
     setTimeout(() => {
-      document.querySelector('a.newcomment-alert').click();
+      const clickEl = document.querySelector('a.newcomment-alert');
+      clickEl.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      if(clickEl) clickEl.click();
     }, 1000);
   }
 }
