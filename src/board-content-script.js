@@ -1,20 +1,26 @@
+import './board-content-script.css';
+
 async function repleCon(emoticonId, attachmentId) {
   const csrf = document
     .querySelector('form#commentForm input[name="_csrf"]')
     .getAttribute('value');
 
   const url = new URL(window.location.href);
+  const urlParamInit = {
+      _csrf: csrf,
+      contentType: 'emoticon',
+      emoticonId,
+      attachmentId,
+    }
+    if(cmtSelected !== ''){
+      urlParamInit.parentId = cmtSelected;
+    }
   const res = await fetch(url.origin + url.pathname + '/comment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
     },
-    body: new URLSearchParams({
-      _csrf: csrf,
-      contentType: 'emoticon',
-      emoticonId,
-      attachmentId,
-    }).toString(),
+    body: new URLSearchParams(urlParamInit).toString(),
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
@@ -37,18 +43,21 @@ async function repleComboCon(combolist) {
     .getAttribute('value');
 
   const url = new URL(window.location.href);
+  const urlParamInit = {
+    _csrf: csrf,
+    contentType: 'emoticon',
+    emoticonId,
+    attachmentId,
+  }
+  if(cmtSelected !== ''){
+    urlParamInit.parentId = cmtSelected;
+  }
   const commentRes = await fetch(url.origin + url.pathname + '/comment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
     },
-    body: new URLSearchParams({
-      _csrf: csrf,
-      contentType: 'combo_emoticon',
-      'option-combo-emoticon': 'on',
-      combolist: JSON.stringify(combolist),
-      content: '',
-    }).toString(),
+    body: new URLSearchParams(urlParamInit).toString(),
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
@@ -61,32 +70,21 @@ async function repleComboCon(combolist) {
   }
 }
 
-// 페이지에서 직접 요청 -> 확장에서 버튼눌러서 요청
+// 페이지에서 직접 콘 목록 요청
 function createSaveButton(){
   const button = document.createElement("button");
   button.addEventListener('click', saveArcacons);
   button.id = 'save-arcacons';
-  button.className = "btn-namlacon";
+  button.className = "btn-namlacon con-save";
   button.type = "button";
   button.tabIndex = 104;
-  button.style = `
-    padding: 0 .5em;
-    display: flex;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0);
-    border: none;
-    border-radius: 4px;
-    color: var(--color-text);
-    transition-duration: .3s;
-  `
+  
   const icon = document.createElement("span");
   icon.className = "ion-archive";
-  icon.style.marginRight = ".1em";
-  icon.style.fontSize = "1.4em";
 
   const text = document.createElement("span");
   text.className = "text";
-  text.textContent = "아카콘 목록 저장";
+  text.innerHTML = "&nbsp;아카콘 목록 저장";
 
   button.appendChild(icon);
   button.appendChild(text);
@@ -136,6 +134,63 @@ async function saveArcacons() {
     
   }
 }
+
+// 댓글/대댓글 위치 선택
+// 팝업 스크립트에서 빈 값이면 기본, 있으면 해당 id붙여서 fetch
+let cmtSelected = '';
+function selectFormSelect(){
+  // 초기값 댓글창
+  const button = document.createElement("button");
+  button.addEventListener('click', ()=>{
+    document.querySelectorAll('.arcacon-focused').forEach((e) => {
+      e.classList.remove('arcacon-focused');
+    });
+    cmtSelected = '';
+  });
+  button.className = "btn-namlacon con-save";
+  button.type = "button";
+  button.tabIndex = 104;
+  
+  const icon = document.createElement("span");
+  icon.className = "ion-chatbox";
+
+  const text = document.createElement("span");
+  text.className = "text";
+  text.innerHTML = "&nbsp;답글 선택";
+
+  button.appendChild(icon);
+  button.appendChild(text);
+
+  document.querySelector('div.reply-form-button-container').prepend(button);
+
+
+  // 대댓글 선택을 하려면 답글 옆에 선택 버튼을 만들어 둬야한다.
+  const commentRights = document.querySelectorAll('div.comment-item');
+  commentRights.forEach((r) => {
+    const cmtBtnTarget = r.querySelector('div.right');
+    const sep = document.createElement('span');
+    sep.className = 'sep';
+    cmtBtnTarget.append(sep);
+
+    const dataId = r.querySelector('a.reply-link').getAttribute('data-target');
+    const cmtSelect = document.createElement('a');
+    cmtSelect.href = '#';
+    cmtSelect.className = 'comment-select';
+    cmtSelect.setAttribute('data-target', dataId);
+    cmtSelect.textContent = '답글 선택';
+    cmtSelect.addEventListener('click', (e) => {
+      // 선택된 대댓글은 parentId에 id값 추가해서 fetch
+      e.preventDefault();
+      document.querySelectorAll('.arcacon-focused').forEach((e) => {
+        e.classList.remove('arcacon-focused');
+      });
+      e.target.classList.add('arcacon-focused');
+      cmtSelected = e.target.getAttribute('data-target');
+    });
+    cmtBtnTarget.append(cmtSelect);
+  });
+}
+selectFormSelect();
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.action) {

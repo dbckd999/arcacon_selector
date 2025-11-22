@@ -40,6 +40,9 @@
       "js": [
         "board-content-script.js"
       ],
+      "css": [
+        "board-content-script.css"
+      ],
       "exclude_matches": [
         "https://arca.live/b/*/*/*"
       ]
