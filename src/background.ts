@@ -30,6 +30,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.action) {
       case 'updateTags':
         try {
+          const pid = msg.data[0].packageId;
           const data: IEmoticon[] = msg.data;
           const updates = data.map((item:IEmoticon) => ({
             key: item.conId,
@@ -38,8 +39,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
               chosung: item.chosung,
             }
           }));
+          const head:string[] = msg.head;
+
           console.log(updates);
           await db.emoticon.bulkUpdate(updates);
+          await db.package_info.add({packageId: pid, tags: head});
           sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
         } catch (error) {
           console.error('Service Worker: Error updating tags:', error);
@@ -88,9 +92,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const result: { [key: number]: { [key: number]: string[] } } = {};
         result[pId] = tags;
 
-        const headerEmoticon = await db.base_emoticon.where('packageId').equals(pId).toArray();
-        console.log(headerEmoticon);
-        sendResponse({ status: 'ok', data: result });
+        const headerTags = await db.package_info.get(pId);
+
+        sendResponse({ status: 'ok', data: result, head: headerTags });
         break;
 
       case 'resourceCollect':
@@ -217,17 +221,32 @@ async function indexing(){
   const fuseOption = {
     keys: [
       "tags",
-      "chosung"
+      "chosung",
+      "packageTags",
     ],
     threshold: 0,
     useExtendedSearch: true,
   }
   // const updated = await chrome.storage.local.get('indexUpdating');
   const emoticons = await db.emoticon.toArray();
+  const packagesData = await db.package_info.toArray();
+  const b:{ [key: number]: string[] } = {};
+  for (const head of packagesData) {
+    b[head.packageId] = head.tags;
+  }
+  const emoticonMapped:IEmoticon[] = emoticons.map(emoticon => {
+    return {
+      packageId: emoticon.packageId,
+      conId: emoticon.conId,
+      tags: emoticon.tags,
+      chosung: emoticon.chosung,
+      packageTags: b[emoticon.packageId],
+    }
+  });
   let index = null;
 
   // if(updated.indexUpdating){
-    index = Fuse.createIndex(fuseOption.keys, emoticons);
+    index = Fuse.createIndex(fuseOption.keys, emoticonMapped);
     // db.search_index.put(index.toJSON(), 1);
   // } else {
     // const query = await db.search_index.get(1);

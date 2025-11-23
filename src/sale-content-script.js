@@ -87,6 +87,7 @@ function getChosung(str) {
   }
   return result;
 }
+
 conForm.addEventListener('submit', async (event) => {
   // 폼의 기본 제출 동작(페이지 이동)을 막습니다.
   event.preventDefault();
@@ -131,7 +132,16 @@ conForm.addEventListener('submit', async (event) => {
     });
   }
 
-  const { status, message } = await chrome.runtime.sendMessage({action: 'updateTags', data: mapped});
+  // 헤더 아이콘 태그 가져오기
+  const headFormData = new FormData(document.getElementById('headID'));
+  // FormData를 순회하며 JSON 객체를 만듭니다.
+  const headData = [];
+  for (const [key, value] of headFormData.entries()) {
+    if(value.trim() === '') continue;
+    headData.push(value.trim());
+  }
+
+  const { status, message } = await chrome.runtime.sendMessage({ action: 'updateTags', data: mapped, head: headData });
   if(status === 'ok'){
     alert(message);
   } else {
@@ -149,7 +159,8 @@ chrome.runtime.sendMessage(
     action: 'getTags',
     data: Number(packageId)
   }).then((response) => {
-    const tags = response.data[packageId];
+    const tags = response.data[packageId] || [];
+    const headTags = response.head.tags || [];
 
     const emoticons = document.querySelectorAll('div.emoticons-wrapper *');
     emoticons.forEach((emoticon) => {
@@ -180,6 +191,14 @@ chrome.runtime.sendMessage(
       conWarpper.appendChild(addButton);
       wrapper.appendChild(conWarpper);
     });
+
+    headTags.forEach((tag) => {
+      const headTagInput = document.createElement('input');
+      headTagInput.name = 'head';
+      headTagInput.value = tag;
+
+      headerForm.append(headTagInput);
+    });
   });
 
 document
@@ -198,3 +217,25 @@ document
     const tagInputEl = appendTagInput(dataId, null);
     conWrapper.querySelector('div.tagWrapper').append(tagInputEl);
   });
+
+// 아카콘 헤더 태그
+const headerForm = document.createElement('form');
+headerForm.id = 'headID';
+headerForm.setAttribute('action', '#');
+
+const headerTagBase = document.createElement('div');
+headerTagBase.append(headerForm);
+const headerBtn = document.createElement('button');
+headerBtn.textContent = '+';
+headerBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const headTagInput = document.createElement('input');
+  headTagInput.name = 'head';
+  headerForm.append(headTagInput);
+});
+headerTagBase.append(headerBtn);
+
+document
+  .querySelector('div.emoticon-header')
+  .after(headerTagBase);
