@@ -9,7 +9,7 @@ import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
 import './popupSetting'
 
-// 백그라운드 스크립트와 연결하여 패널의 열림/닫힘 상태를 알립니다.
+// 백그라운드에 패널의 열림/닫힘 상태를 알립니다.
 chrome.runtime.connect({ name: "sidepanel-connection" });
 
 import './searchDetail'
@@ -48,10 +48,8 @@ async function showConPackage(packageId, pakcageName) {
 
   // 아카콘 제목
   const title = document.createElement('span');
+  title.className = 'package-title';
   title.textContent = pakcageName;
-  title.addEventListener('click', (e)=>{
-    chrome.tabs.update({ url: `https://arca.live/e/${packageId}` });
-  });
   thumbnail_wrapper.append(title);
   thumbnail_wrapper.append(document.createElement('br'));
 
@@ -127,7 +125,7 @@ async function conListup() {
       if(pId in packageList) await showConPackage(pId, packageList[pId].title);
     }
 
-    const spy = new ScrollSpy('nav', {
+    new ScrollSpy('nav', {
       nav: '#conHeaders a',
       className: 'in-view',
       // 스크롤 시 활성화된 메뉴 아이템을 찾아 중앙으로 스크롤합니다.
@@ -151,18 +149,22 @@ async function conListup() {
   }
 }
 
-// ScrollSpy의 isInView 함수를 재정의하여 offset 기능 추가
-ScrollSpy.prototype.isInView = function (el) {
-  // 하드코딩된 위치
+// ScrollSpy에서 사용할 offset 값을 저장할 변수
+let scrollSpyOffset = 0;
+
+// offset 값을 계산하고 업데이트하는 함수
+function updateScrollSpyOffset() {
   const navBar = document.querySelector('nav');
   const navHeight = navBar ? navBar.offsetHeight : 0;
-  const offset = navHeight + 10;
+  scrollSpyOffset = navHeight + 10;
+}
 
+// ScrollSpy의 isInView 함수를 재정의. offset 계산값 추가
+// 하이라이트 대상 위치 재정의
+ScrollSpy.prototype.isInView = function (el) {
   const rect = el.getBoundingClientRect();
-
-  // 요소의 상단이 offset보다 위에 있고, 요소의 하단이 offset보다 아래에 있을 때 true를 반환합니다.
-  // 즉, offset 라인이 요소를 가로지를 때 활성화됩니다.
-  return rect.top <= offset && rect.bottom >= offset;
+  // 미리 계산된 offset 값을 사용하여 성능 향상
+  return rect.top <= scrollSpyOffset && rect.bottom >= scrollSpyOffset;
 }
 
 async function downloadTags(packageIds){
@@ -230,8 +232,13 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   const groupId = groupEl ? groupEl.getAttribute('data-package-id') : null;
   const thumbnail = e.target.closest('.thumbnail');
   const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
+  const title = e.target.closest('.package-title');
 
-  if(thumbnail){
+  if (title) {
+    // 패키지 제목 클릭 시
+    chrome.tabs.update({ url: `https://arca.live/e/${groupId}` });
+  } else if(thumbnail && groupId){
+    // 썸네일 이미지 클릭 시
     if (conId && isCombo) {
       addCombocon(groupId, conId, thumbnail.cloneNode(true));
     } else {
@@ -253,6 +260,7 @@ document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
 
+// 태그 내보내기
 document.getElementById('downloadForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const data = serialize(e.target);
@@ -261,34 +269,7 @@ document.getElementById('downloadForm').addEventListener('submit', (e) => {
   downloadTags(data.package);
 });
 
-customSort.forEach(pid => {
-  const outmsg = document.createElement('sl-icon');
-  outmsg.setAttribute('name', 'box-arrow-up-right');
-  outmsg.style.paddingLeft = '5px';
-  outmsg.addEventListener('click', () => {
-    chrome.tabs.update({ url: `https://arca.live/e/${pid}` });
-  });
-
-  const box = document.createElement('sl-checkbox');
-  box.name = "package"
-  box.value = pid;
-  box.innerHTML = packageList[pid].packageName + '  ';
-  
-  const li = document.createElement('li');
-  li.append(box);
-  li.append(outmsg);
-
-  document.getElementById('downloadBox').append(li);
-});
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if(msg.action === 'popupSettingMessage'){
-      const dialog = document.querySelector('.dialog-overview');
-      dialog.show()
-    }
-});
-
-// 아카콘 대표목록 가로휠 적용
+// 아카콘 대표목록 가로휠
 document.getElementById('conHeaders').addEventListener('wheel', (e) => {
   if (e.deltaX === 0 && Math.abs(e.deltaY) > 0) {
     conHeaders.scrollLeft += e.deltaY;
@@ -296,7 +277,7 @@ document.getElementById('conHeaders').addEventListener('wheel', (e) => {
   }
 });
 
-// 네비게이션 아이템 클릭 시 오프셋을 적용하여 스크롤하는 기능
+// 아카콘 대표 이미지 클릭 시 오프셋을 적용하여 스크롤하는 기능
 document.getElementById('conHeaders').addEventListener('click', (e) => {
   // 클릭된 요소가 <a> 태그인지 확인
   const anchor = e.target.closest('a');
@@ -325,122 +306,93 @@ document.getElementById('conHeaders').addEventListener('click', (e) => {
   }
 });
 
-// 설정값 불러온 뒤 동작
-chrome.storage.local.get('arcacon_setting').then(res => {
-  const setting = res.arcacon_setting;
+function main(){
 
-  // 절전화면 활성
-  if(setting.isSleep == 'true'){
-    // 절전화면 시작시간
-    if(setting.sleepTime){
+  // 초기 offset 값을 계산합니다.
+  updateScrollSpyOffset();
 
-      //보호화면
-      const shild = document.getElementById('shild');
-      const root = document.querySelector('html');
-      let shildTimeout;
-
-      function showShild() {
-        clearTimeout(shildTimeout);
-        shildTimeout = setTimeout(() => {
-          if (shild) {
-            shild.style.opacity = setting.sleepOpacity,
-            shild.style.visibility = 'visible';
-          }
-        }, Number(setting.sleepTime));
-      }
-
-      function hideShild() {
-        if (shild) {
-          clearTimeout(shildTimeout);
-          shild.style.opacity = '0';
-          shild.style.visibility = 'hidden';
-        }
-      }
-
-      root.addEventListener('mouseenter', hideShild);
-      root.addEventListener('mouseleave', showShild);
-      showShild();
-    }
+  // nav 요소의 크기가 변경될 때마다 offset 값을 다시 계산하도록 ResizeObserver를 설정합니다.
+  const navBar = document.querySelector('nav');
+  if (navBar) {
+    const resizeObserver = new ResizeObserver(updateScrollSpyOffset);
+    resizeObserver.observe(navBar);
   }
-  // 아카콘 크기
-  if(setting.conSize){
-    document.getElementById('conStyle').innerText = `
-    .images-container img {
-      width: ${setting.conSize}px;
-      height: ${setting.conSize}px;
-    }
-    `;
-    conListup();
-  }
-});
 
-import Uppy from '@uppy/core';
-import Dashboard from '@uppy/dashboard';
-import Korean from '@uppy/locales/lib/ko_KR.js';
+  customSort.forEach(pid => {
+    const outmsg = document.createElement('sl-icon');
+    outmsg.setAttribute('name', 'box-arrow-up-right');
+    outmsg.style.paddingLeft = '5px';
+    outmsg.addEventListener('click', () => {
+      chrome.tabs.update({ url: `https://arca.live/e/${pid}` });
+    });
 
-import '@uppy/core/css/style.min.css';
-import '@uppy/dashboard/css/style.min.css';
-
-const upy = new Uppy({
-  restrictions: {
-    allowedFileTypes: ['.json']
-  }
-}).use(Dashboard, { 
-  inline: true,
-  target: '#uppy-dashboard',
-  locale: Korean,
-  theme: 'dark',
-  note: 'JSON파일만 업로드 가능합니다.'
-});
-
-upy.on('file-added', async (file) => {
-  try {
-    const text = await file.data.text();  // Blob → text
-    const json = JSON.parse(text);
-
-    // 간단 검증 예시
-    if (!json || typeof json !== 'object') {
-      throw new Error('Invalid JSON structure');
-    }
-
-  } catch (e) {
-    notify('유효하지 않은 JSON 파일입니다.', 'exclamation-triangle');
-    upy.removeFile(file.id); // 잘못된 파일 제거
-  }
-});
-
-upy.on('upload', async (uploadID, files) => {
-  files.forEach(async (file) => {
-    const text = await file.data.text();
-    const json = JSON.parse(text);
+    const box = document.createElement('sl-checkbox');
+    box.name = "package"
+    box.value = pid;
+    box.innerHTML = packageList[pid].packageName + '  ';
     
-    // 키 존재 확인. 없으면 무시됨
-    const pId = Object.keys(json)[0];
+    const li = document.createElement('li');
+    li.append(box);
+    li.append(outmsg);
 
-    if(await db.emoticon.where('packageId').equals(Number(pId)).first() > 0){
-      const emoticons = json[pId];
-      const updates = [];
-      Object.keys(emoticons).forEach((conId) => {
-        updates.push({
-          key: Number(conId),
-          changes: { 
-            tags: emoticons[conId],
-          }
-        });
-      });
+    document.getElementById('downloadBox').append(li);
+  });
 
-      if(updates.length > 0){
-        db.emoticon.bulkUpdate(updates)
-        .then(count => {
-          notify(`${count}개의 아카콘 데이터를 업데이트했습니다.`);
-        }).catch(e => {
-          notify(e, 'danger');
-          console.error(e);
-        });
-      } else {
-        notify('업데이트할 데이터가 없습니다.');
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+      if(msg.action === 'popupSettingMessage'){
+        const dialog = document.querySelector('.dialog-overview');
+        dialog.show()
       }
+  });
 
+  // 설정값 불러온 뒤 동작
+  chrome.storage.local.get('arcacon_setting').then(res => {
+    const setting = res.arcacon_setting;
+
+    // 절전화면 활성
+    if(setting.isSleep == 'true'){
+      // 절전화면 시작시간
+      if(setting.sleepTime){
+
+        //보호화면
+        const shild = document.getElementById('shild');
+        const root = document.querySelector('html');
+        let shildTimeout;
+
+        function showShild() {
+          clearTimeout(shildTimeout);
+          shildTimeout = setTimeout(() => {
+            if (shild) {
+              shild.style.opacity = setting.sleepOpacity,
+              shild.style.visibility = 'visible';
+            }
+          }, Number(setting.sleepTime));
+        }
+
+        function hideShild() {
+          if (shild) {
+            clearTimeout(shildTimeout);
+            shild.style.opacity = '0';
+            shild.style.visibility = 'hidden';
+          }
+        }
+
+        root.addEventListener('mouseenter', hideShild);
+        root.addEventListener('mouseleave', showShild);
+        showShild();
+      }
+    }
+    // 아카콘 크기
+    if(setting.conSize){
+      document.getElementById('conStyle').innerText = `
+      .images-container img {
+        width: ${setting.conSize}px;
+        height: ${setting.conSize}px;
+      }
+      `;
+      conListup();
     }
   });
-});
+}
+
+main();
