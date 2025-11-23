@@ -8,15 +8,11 @@ import ScrollSpy from 'scrollspy-js';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
 import './popupSetting'
-
-// 백그라운드에 패널의 열림/닫힘 상태를 알립니다.
-chrome.runtime.connect({ name: "sidepanel-connection" });
-
 import './searchDetail'
 
 // 저장된 콘 패키지 목록 순회
-const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package');
-const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_enabled');
+const { arcacon_package: packageList } = await chrome.storage.local.get('arcacon_package') || [];
+const { arcacon_enabled: customSort } = await chrome.storage.local.get('arcacon_enabled') || [];
 let conPackage = [];
 let isCombo = false;
 
@@ -152,7 +148,7 @@ async function conListup() {
 // ScrollSpy에서 사용할 offset 값을 저장할 변수
 let scrollSpyOffset = 0;
 
-// offset 값을 계산하고 업데이트하는 함수
+// offset 값을 계산, 업데이트
 function updateScrollSpyOffset() {
   const navBar = document.querySelector('nav');
   const navHeight = navBar ? navBar.offsetHeight : 0;
@@ -218,14 +214,17 @@ document.getElementById('comboConWrap').addEventListener('click', (e) => {
 });
 
 // 콤보콘 게시
-document.getElementById('recordCombocon').addEventListener('click', () => {
-  chrome.tabs.query({active: true, currentWindow: true}, async (tabs)=>{
-    await chrome.tabs.sendMessage(tabs[0].id, {action: "recordCombocon", data: conPackage });
-    document.getElementById('comboCon').click();
-    });
+document.getElementById('recordCombocon').addEventListener('click', async () => {
+  conReady = false;
+  document.getElementById('comboCon').click();
+  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+  const { status } = await chrome.tabs.sendMessage(tab.id, {action: "recordCombocon", data: conPackage });
+  if(status === 'ok') { conReady = true; }
+  else { notify(status, 'danger'); }
 });
 
 // 아카콘 클릭
+let conReady = true;
 document.getElementById('conWrap').addEventListener('click', async (e) => {
   // 클릭된 요소가 .thumbnail인지 확인
   const groupEl = e.target.closest('.package-wrap');
@@ -237,20 +236,28 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   if (title) {
     // 패키지 제목 클릭 시
     chrome.tabs.update({ url: `https://arca.live/e/${groupId}` });
-  } else if(thumbnail && groupId){
+  } else if(thumbnail){
     // 썸네일 이미지 클릭 시
-    if (conId && isCombo) {
+    if (conReady && isCombo) {
+      // 단순 엘리먼트 추가
       addCombocon(groupId, conId, thumbnail.cloneNode(true));
+    } else if(conReady && !isCombo) {
+      try {
+        conReady = false;
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+        const { status } = await chrome.tabs.sendMessage(tab.id, {action: "recordEmoticon", data: {
+          emoticonId: groupId,
+          attachmentId: conId,
+        }});
+        if(status === 'ok'){ conReady = true; }
+        else { notify('아카라이브의 콘솔을 확인해주세요.', 'danger'); }
+      } catch (e) {
+        conReady = true;
+        notify(e, 'danger');
+        console.error(e);
+      }
     } else {
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs)=>{
-          chrome.tabs.sendMessage(tabs[0].id, {action: "recordEmoticon", data: {
-            emoticonId: groupId,
-            attachmentId: conId,
-          }}).catch(e => {
-            notify(e, 'danger');
-            console.error(e);
-          });
-      });
+      notify('전송중입니다.', 'warning', 3000);
     }
   }
 });
@@ -308,9 +315,11 @@ document.getElementById('conHeaders').addEventListener('click', (e) => {
 
 function main(){
 
+  // 백그라운드에 패널의 열림/닫힘 상태를 알립니다.
+  chrome.runtime.connect({ name: "sidepanel-connection" });
+
   // 초기 offset 값을 계산합니다.
   updateScrollSpyOffset();
-
   // nav 요소의 크기가 변경될 때마다 offset 값을 다시 계산하도록 ResizeObserver를 설정합니다.
   const navBar = document.querySelector('nav');
   if (navBar) {
@@ -339,10 +348,10 @@ function main(){
   });
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-      if(msg.action === 'popupSettingMessage'){
-        const dialog = document.querySelector('.dialog-overview');
-        dialog.show()
-      }
+    if(msg.action === 'popupSettingMessage'){
+      const dialog = document.querySelector('.dialog-overview');
+      dialog.show();
+    }
   });
 
   // 설정값 불러온 뒤 동작

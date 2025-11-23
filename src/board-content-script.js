@@ -1,21 +1,47 @@
 import './board-content-script.css';
 
+/**
+ * 지정된 시간 동안 주기적으로 selector에 해당하는 엘리먼트를 찾습니다.
+ * 엘리먼트를 찾으면 Promise를 통해 해당 엘리먼트를 반환합니다.
+ * @param {string} selector - 찾을 엘리먼트의 CSS selector.
+ * @param {number} timeout - 최대 대기 시간 (ms). 기본값 5000ms (5초).
+ * @param {number} interval - 탐색 주기 (ms). 기본값 200ms.
+ * @returns {Promise<Element>} 찾은 엘리먼트. 시간 초과 시 Promise는 reject됩니다.
+ */
+function waitForElement(selector, timeout = 5000, interval = 200) {
+  return new Promise((resolve, reject) => {
+    let elapsedTime = 0;
+    const timer = setInterval(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        clearInterval(timer);
+        resolve(element);
+      } else {
+        elapsedTime += interval;
+        if (elapsedTime >= timeout) {
+          clearInterval(timer);
+          reject(new Error(`'${selector}' 엘리먼트를 ${timeout}ms 내에 찾지 못했습니다.`));
+        }
+      }
+    }, interval);
+  });
+}
+
 async function repleCon(emoticonId, attachmentId) {
   const csrf = document
     .querySelector('form#commentForm input[name="_csrf"]')
     .getAttribute('value');
 
   const url = new URL(window.location.href);
+  const cmtURL = url.origin + url.pathname + '/comment';
   const urlParamInit = {
-      _csrf: csrf,
-      contentType: 'emoticon',
-      emoticonId,
-      attachmentId,
-    }
-    if(cmtSelected !== ''){
-      urlParamInit.parentId = cmtSelected;
-    }
-  const res = await fetch(url.origin + url.pathname + '/comment', {
+    _csrf: csrf,
+    contentType: 'emoticon',
+    emoticonId,
+    attachmentId,
+  }
+  if (cmtSelected !== '') urlParamInit.parentId = cmtSelected;
+  const fetchInput = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -24,15 +50,20 @@ async function repleCon(emoticonId, attachmentId) {
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
-  });
-  if(res.ok){
-    setTimeout(()=>{
-      const clickEl = document.querySelector('a.newcomment-alert');
-      clickEl.scrollIntoView({ block: 'end', behavior: 'smooth' });
-      if(clickEl) clickEl.click();
-    },
-      1000
-    );
+  }
+
+  try {
+    const commentRes = await fetch(cmtURL, fetchInput);
+    if (commentRes.ok) {
+      const clickEl = await waitForElement('a.newcomment-alert');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      clickEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      clickEl.click();
+      return true;
+    }
+  } catch (error) {
+    console.warn(error.message); // 엘리먼트를 못 찾아도 에러 대신 경고만 출력
+    return false;
   }
 }
 
@@ -46,44 +77,50 @@ async function repleComboCon(combolist) {
     .getAttribute('value');
 
   const url = new URL(window.location.href);
-  const urlParamInit = {
+  const cmtURL = url.origin + url.pathname + '/comment';
+  const bodyInit = {
     _csrf: csrf,
     contentType: 'emoticon',
     emoticonId,
     attachmentId,
   }
-  if(cmtSelected !== ''){
-    urlParamInit.parentId = cmtSelected;
-  }
-  const commentRes = await fetch(url.origin + url.pathname + '/comment', {
+  if (cmtSelected !== '') bodyInit.parentId = cmtSelected;
+  const fetchInput = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
     },
-    body: new URLSearchParams(urlParamInit).toString(),
+    body: new URLSearchParams(bodyInit).toString(),
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
-  });
+  }
 
-  if(commentRes.ok){
-    setTimeout(() => {
-      const clickEl = document.querySelector('a.newcomment-alert');
-      clickEl.scrollIntoView({ block: 'end', behavior: 'smooth' });
-      if(clickEl) clickEl.click();
-    }, 1000);
+  try {
+    const commentRes = await fetch(cmtURL, fetchInput);
+    if (commentRes.ok) {
+      const clickEl = await waitForElement('a.newcomment-alert');
+      setTimeout(() => {
+        clickEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        clickEl.click();
+        return true;
+      }, 1000);
+    }
+  } catch (error) {
+    console.warn(error.message); // 엘리먼트를 못 찾아도 에러 대신 경고만 출력
+    return false;
   }
 }
 
 // 페이지에서 직접 콘 목록 요청
-function createSaveButton(){
+function createSaveButton() {
   const button = document.createElement("button");
   button.addEventListener('click', saveArcacons);
   button.id = 'save-arcacons';
   button.className = "btn-namlacon con-save";
   button.type = "button";
   button.tabIndex = 104;
-  
+
   const icon = document.createElement("span");
   icon.className = "ion-archive";
 
@@ -117,7 +154,7 @@ async function saveArcacons() {
       };
     });
     await chrome.storage.local.set({ arcacon_package: res });
-    const enabledList = gc.map((e)=>{return Number(e.getAttribute('data-package-id'))});
+    const enabledList = gc.map((e) => { return Number(e.getAttribute('data-package-id')) });
     await chrome.storage.local.set({ arcacon_enabled: enabledList });
 
     // 아카콘 대표 이미지
@@ -131,22 +168,22 @@ async function saveArcacons() {
     });
 
     const req = await chrome.runtime.sendMessage({ action: 'saveHeadArcacons', data: result });
-    if(req.status === 'ok'){
+    if (req.status === 'ok') {
       alert('아카콘 목록을 저장했습니다.');
     } else {
       alert(req.message);
     }
-    
+
   }
 }
 
 // 댓글/대댓글 위치 선택
 // 팝업 스크립트에서 빈 값이면 기본, 있으면 해당 id붙여서 fetch
 let cmtSelected = '';
-function selectFormSelect(){
+function selectFormSelect() {
   // 초기값 댓글창
   const button = document.createElement("button");
-  button.addEventListener('click', ()=>{
+  button.addEventListener('click', () => {
     document.querySelectorAll('.arcacon-focused').forEach((e) => {
       e.classList.remove('arcacon-focused');
     });
@@ -155,7 +192,7 @@ function selectFormSelect(){
   button.className = "btn-namlacon con-save";
   button.type = "button";
   button.tabIndex = 104;
-  
+
   const icon = document.createElement("span");
   icon.className = "ion-chatbox";
 
@@ -198,18 +235,22 @@ function selectFormSelect(){
 selectFormSelect();
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  (async ()=>{
+    let res = false;
     switch (msg.action) {
       // 콘 게시
       case 'recordEmoticon':
-        console.log(msg.data.emoticonId, msg.data.attachmentId);
-        repleCon(msg.data.emoticonId, msg.data.attachmentId);
-        sendResponse({ status: 'ok' });
+        const { emoticonId, attachmentId } = msg.data;
+        console.log(emoticonId, attachmentId);
+        res = await repleCon(emoticonId, attachmentId);
         break;
       // 콤보콘 게시
       case 'recordCombocon':
-        repleComboCon(msg.data);
-        sendResponse({ status: 'ok' });
+        res = repleComboCon(msg.data);
         break;
-    }
+      }
+    const status = res ? 'ok' : 'fail';
+    sendResponse({ status });
+  })();
   return true; // 비동기 응답을 위해 true를 반환합니다.
 });
