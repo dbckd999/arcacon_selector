@@ -73,10 +73,10 @@ nav > sl-divider {
   --sl-focus-ring: 0 0 0 2px;
 }
 
-#downloadBox {
+.glue {
   padding-inline-start: 0;
 }
 
-ul li {
+.glue li {
   list-style: none;
 }

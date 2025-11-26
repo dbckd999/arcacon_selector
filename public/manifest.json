@@ -34,37 +34,19 @@
   ],
   "content_scripts": [
     {
-      "matches": [
-        "https://arca.live/b/*/*"
-      ],
-      "js": [
-        "board-content-script.js"
-      ],
-      "css": [
-        "board-content-script.css"
-      ],
-      "exclude_matches": [
-        "https://arca.live/b/*/*/*"
-      ]
+      "matches": ["https://arca.live/b/*/*"],
+      "js": ["board-content-script.js"],
+      "css": ["board-content-script.css"],
+      "exclude_matches": ["https://arca.live/b/*/*/*"]
     },
     {
-      "matches": [
-        "https://arca.live/e/*"
-      ],
-      "css": [
-        "sale-content-script.css"
-      ],
-      "js": [
-        "sale-content-script.js"
-      ]
+      "matches": ["https://arca.live/e/*"],
+      "css": ["sale-content-script.css"],
+      "js": ["sale-content-script.js"]
     },
     {
-      "matches": [
-        "https://arca.live/settings/emoticons"
-      ],
-      "js": [
-        "order-content-script.js"
-      ]
+      "matches": ["https://arca.live/settings/emoticons"],
+      "js": ["order-content-script.js"]
     }
   ]
 }
