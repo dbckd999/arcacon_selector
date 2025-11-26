@@ -2,7 +2,7 @@ body {
   margin: 0;
 }
 
-.images-container{
+.images-container {
   line-height: 0;
 }
 
@@ -33,7 +33,7 @@ a.in-view sl-avatar::part(base) {
   /* transition: border 0.2s, box-shadow 0.2s; */
 }
 
-#comboConWrap img{
+#comboConWrap img {
   width: 50px;
   height: 50px;
 }
@@ -49,12 +49,12 @@ a.in-view sl-avatar::part(base) {
   gap: 8px; /* 요소들 사이에 간격을 줍니다. */
 }
 
-nav>sl-divider{
+nav > sl-divider {
   --spacing: var(--sl-spacing-2x-small);
 }
 
 /* popup.js에서 일부 재정의됩니다. 로딩 오류시 사용될 가능성있음. */
-#shild{
+#shild {
   position: fixed;
   display: flex;
   align-items: center;
@@ -77,6 +77,6 @@ nav>sl-divider{
   padding-inline-start: 0;
 }
 
-#downloadBox li{
+ul li {
   list-style: none;
 }

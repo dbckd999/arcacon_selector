@@ -12,13 +12,13 @@ const icon = {
   neutral: 'gear',
   warning: 'exclamation-triangle',
   danger: 'exclamation-octagon',
-}
-
+};
 
 export function notify(
   message = '빈 메시지',
   variant: AlertVariant = 'primary',
-  duration = 3000) {
+  duration = 3000
+) {
   const alert = Object.assign(document.createElement('sl-alert'), {
     variant,
     closable: true,
@@ -26,7 +26,7 @@ export function notify(
     innerHTML: `
         <sl-icon name="${icon[variant]}" slot="icon"></sl-icon>
         <div>${message}</div>
-      `
+      `,
   });
 
   document.body.append(alert);

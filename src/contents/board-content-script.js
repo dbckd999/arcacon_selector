@@ -1,4 +1,4 @@
-import './board-content-script.css';
+import '../css/board-content-script.css';
 
 /**
  * 지정된 시간 동안 주기적으로 selector에 해당하는 엘리먼트를 찾습니다.
@@ -20,7 +20,11 @@ function waitForElement(selector, timeout = 5000, interval = 200) {
         elapsedTime += interval;
         if (elapsedTime >= timeout) {
           clearInterval(timer);
-          reject(new Error(`'${selector}' 엘리먼트를 ${timeout}ms 내에 찾지 못했습니다.`));
+          reject(
+            new Error(
+              `'${selector}' 엘리먼트를 ${timeout}ms 내에 찾지 못했습니다.`
+            )
+          );
         }
       }
     }, interval);
@@ -39,7 +43,7 @@ async function repleCon(emoticonId, attachmentId) {
     contentType: 'emoticon',
     emoticonId,
     attachmentId,
-  }
+  };
   if (cmtSelected !== '') urlParamInit.parentId = cmtSelected;
   const fetchInput = {
     method: 'POST',
@@ -50,13 +54,13 @@ async function repleCon(emoticonId, attachmentId) {
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
-  }
+  };
 
   try {
     const commentRes = await fetch(cmtURL, fetchInput);
     if (commentRes.ok) {
       const clickEl = await waitForElement('a.newcomment-alert');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       clickEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
       clickEl.click();
       return true;
@@ -83,7 +87,7 @@ async function repleComboCon(combolist) {
     contentType: 'emoticon',
     emoticonId,
     attachmentId,
-  }
+  };
   if (cmtSelected !== '') bodyInit.parentId = cmtSelected;
   const fetchInput = {
     method: 'POST',
@@ -94,7 +98,7 @@ async function repleComboCon(combolist) {
     mode: 'cors',
     credentials: 'include',
     cache: 'no-cache',
-  }
+  };
 
   try {
     const commentRes = await fetch(cmtURL, fetchInput);
@@ -114,19 +118,19 @@ async function repleComboCon(combolist) {
 
 // 페이지에서 직접 콘 목록 요청
 function createSaveButton() {
-  const button = document.createElement("button");
+  const button = document.createElement('button');
   button.addEventListener('click', saveArcacons);
   button.id = 'save-arcacons';
-  button.className = "btn-namlacon con-save";
-  button.type = "button";
+  button.className = 'btn-namlacon con-save';
+  button.type = 'button';
   button.tabIndex = 104;
 
-  const icon = document.createElement("span");
-  icon.className = "ion-archive";
+  const icon = document.createElement('span');
+  icon.className = 'ion-archive';
 
-  const text = document.createElement("span");
-  text.className = "text";
-  text.innerHTML = "&nbsp;아카콘 목록 저장";
+  const text = document.createElement('span');
+  text.className = 'text';
+  text.innerHTML = '&nbsp;아카콘 목록 저장';
 
   button.appendChild(icon);
   button.appendChild(text);
@@ -134,16 +138,17 @@ function createSaveButton() {
   return button;
 }
 
-document.querySelector('div.reply-form-button-container').prepend(createSaveButton());
+document
+  .querySelector('div.reply-form-button-container')
+  .prepend(createSaveButton());
 
 async function saveArcacons() {
   const _gc = document.querySelectorAll('div.package-item');
   const gc = Array.from(_gc).slice(1);
   if (gc.length === 0) {
-    alert("아카콘을 목록을 열어주세요.");
+    alert('아카콘을 목록을 열어주세요.');
     return;
-  }
-  else {
+  } else {
     const res = {};
     gc.map((el) => {
       const subEl = el.querySelector('div');
@@ -154,26 +159,37 @@ async function saveArcacons() {
       };
     });
     await chrome.storage.local.set({ arcacon_package: res });
-    const enabledList = gc.map((e) => { return Number(e.getAttribute('data-package-id')) });
+    const enabledList = gc.map((e) => {
+      return Number(e.getAttribute('data-package-id'));
+    });
     await chrome.storage.local.set({ arcacon_enabled: enabledList });
 
     // 아카콘 대표 이미지
     const resourceHeader = document.querySelectorAll('div.package-thumbnail');
-    const result = Array.from(resourceHeader).slice(1).map((el) => {
-      const origin = 'https:' + el.getAttribute('style').replace(/background-image: url\(\"/g, '').replace(/\"\);$/g, '');
-      return {
-        packageId: Number(el.getAttribute('data-package-id')),
-        url: origin,
-      };
-    });
+    const result = Array.from(resourceHeader)
+      .slice(1)
+      .map((el) => {
+        const origin =
+          'https:' +
+          el
+            .getAttribute('style')
+            .replace(/background-image: url\(\"/g, '')
+            .replace(/\"\);$/g, '');
+        return {
+          packageId: Number(el.getAttribute('data-package-id')),
+          url: origin,
+        };
+      });
 
-    const req = await chrome.runtime.sendMessage({ action: 'saveHeadArcacons', data: result });
+    const req = await chrome.runtime.sendMessage({
+      action: 'saveHeadArcacons',
+      data: result,
+    });
     if (req.status === 'ok') {
       alert('아카콘 목록을 저장했습니다.');
     } else {
       alert(req.message);
     }
-
   }
 }
 
@@ -182,29 +198,28 @@ async function saveArcacons() {
 let cmtSelected = '';
 function selectFormSelect() {
   // 초기값 댓글창
-  const button = document.createElement("button");
+  const button = document.createElement('button');
   button.addEventListener('click', () => {
     document.querySelectorAll('.arcacon-focused').forEach((e) => {
       e.classList.remove('arcacon-focused');
     });
     cmtSelected = '';
   });
-  button.className = "btn-namlacon con-save";
-  button.type = "button";
+  button.className = 'btn-namlacon con-save';
+  button.type = 'button';
   button.tabIndex = 104;
 
-  const icon = document.createElement("span");
-  icon.className = "ion-chatbox";
+  const icon = document.createElement('span');
+  icon.className = 'ion-chatbox';
 
-  const text = document.createElement("span");
-  text.className = "text";
-  text.innerHTML = "&nbsp;답글 선택";
+  const text = document.createElement('span');
+  text.className = 'text';
+  text.innerHTML = '&nbsp;답글 선택';
 
   button.appendChild(icon);
   button.appendChild(text);
 
   document.querySelector('div.reply-form-button-container').prepend(button);
-
 
   // 대댓글 선택을 하려면 답글 옆에 선택 버튼을 만들어 둬야한다.
   const commentRights = document.querySelectorAll('div.comment-item');
@@ -235,7 +250,7 @@ function selectFormSelect() {
 selectFormSelect();
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  (async ()=>{
+  (async () => {
     let res = false;
     switch (msg.action) {
       // 콘 게시
@@ -248,7 +263,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'recordCombocon':
         res = repleComboCon(msg.data);
         break;
-      }
+    }
     const status = res ? 'ok' : 'fail';
     sendResponse({ status });
   })();

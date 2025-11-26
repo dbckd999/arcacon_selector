@@ -108,7 +108,8 @@ async function signup() {
       });
       console.log('Token saved to local storage');
       console.log(parseJwt(tokenData.access_token));
-    });
+    }
+  );
 }
 
 /** 엑세스토큰 사용/재발급
@@ -148,7 +149,8 @@ async function regenAccessToken() {
     if (!tokenRes.ok) {
       const errorData = await tokenRes.json();
       throw new Error(
-        `Failed to refresh token: ${errorData.error_description || tokenRes.statusText
+        `Failed to refresh token: ${
+          errorData.error_description || tokenRes.statusText
         }`
       );
     }

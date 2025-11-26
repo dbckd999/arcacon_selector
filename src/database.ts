@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 
 export interface IEmoticon {
-  packageId: number;
+  packageId?: number;
   conId: number;
   conOrder?: number;
   tags?: string[];

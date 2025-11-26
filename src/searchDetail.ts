@@ -1,8 +1,9 @@
-
 // 검색할 정보들
-import ArcaconTagSearch from './search'
+import ArcaconTagSearch from './panel/search';
 import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import db from './database';
+
+// 검색과 관련되는 상호작용
 
 // 검색결과 이벤트. 결과는 작성 가능한 이미지 엘리먼트
 const searchResult = document.getElementById('searchResult');
@@ -17,9 +18,8 @@ searchResult.addEventListener('onSearch', async (event: Event) => {
     searchResult.innerHTML = '<span>검색결과</span><br>';
 
     const conIds = e.detail;
-    db.emoticon.bulkGet(conIds)
-    .then(cons => {
-      cons.forEach(con => {
+    db.emoticon.bulkGet(conIds).then((cons) => {
+      cons.forEach((con) => {
         const thumbnail = document.createElement('img');
         thumbnail.setAttribute('loading', 'lazy');
         thumbnail.setAttribute('class', 'thumbnail');
@@ -34,7 +34,7 @@ searchResult.addEventListener('onSearch', async (event: Event) => {
 // 단일태그 클릭-삭제 이벤트
 const tagGroup = document.querySelector('.tags-removable');
 tagGroup.addEventListener('sl-remove', (event) => {
-  const tagClearElement = event.target as HTMLElement;;
+  const tagClearElement = event.target as HTMLElement;
   const tagData = tagClearElement.getAttribute('data-tag');
   searchTest.remove(tagData);
   tagClearElement.style.opacity = '0';
@@ -54,26 +54,31 @@ document.getElementById('removeAllTag').addEventListener('click', (e) => {
 // 삭제 가능한 태그객체 생성
 const tagGround = document.querySelector('.tags-removable');
 const tagInputForm = document.getElementById('tagInput');
-tagInputForm.addEventListener('submit', (e: SubmitEvent) => { // 이벤트 타입 명시
-    e.preventDefault();
-    const form = e.target as HTMLFormElement; // e.target을 HTMLFormElement로 캐스팅
-    const formData = serialize(form) as { tag: string }; // serialize 결과 타입을 명시
+tagInputForm.addEventListener('submit', (e: SubmitEvent) => {
+  // 이벤트 타입 명시
+  e.preventDefault();
 
-    if (formData.tag.trim() === '') return; // 이제 formData.tag는 string으로 안전하게 접근 가능
+  const form = e.target as HTMLFormElement;
+  const formData: { [key: string]: string } = serialize(form) as {
+    tag: string;
+  };
 
-    const tagInputValues = formData.tag.split(' ').filter(t => t.length > 0); // tagInput 대신 tagInputValues로 변수명 변경 및 빈 문자열 필터링
-    if (tagInputValues.length === 0) return;
+  if (formData.tag.trim() === '') return; // 이제 formData.tag는 string으로 안전하게 접근 가능
 
-    const slInput = form.querySelector('sl-input'); // sl-input 요소에 접근
-    if (slInput) slInput.value = ''; // sl-input이 null일 수 있으므로 null 체크 후 value 설정
+  const tagInputValues = formData.tag.split(' ').filter((t) => t.length > 0); // tagInput 대신 tagInputValues로 변수명 변경 및 빈 문자열 필터링
+  if (tagInputValues.length === 0) return;
 
-    tagInputValues.forEach(t => { // while 루프 대신 forEach 사용
-        searchTest.add(t);
-        const tagEl = document.createElement('sl-tag'); // SlTag 타입 명시
-        tagEl.setAttribute('data-tag', t);
-        tagEl.size = 'small'; // setAttribute 대신 직접 속성 접근
-        tagEl.removable = true; // setAttribute 대신 직접 속성 접근
-        tagEl.textContent = t; // innerHTML 대신 textContent 사용
-        tagGroup?.append(tagEl); // tagGroup이 null일 수 있으므로 옵셔널 체이닝 사용
-    });
+  const slInput = form.querySelector<HTMLInputElement>('sl-input');
+  if (slInput) slInput.value = '';
+
+  // 배열(또는 길이가1인) 순회, 태그 추가
+  tagInputValues.forEach((t) => {
+    searchTest.add(t);
+    const tagEl = document.createElement('sl-tag');
+    tagEl.setAttribute('data-tag', t);
+    tagEl.setAttribute('size', 'small');
+    tagEl.setAttribute('removable', 'true');
+    tagEl.textContent = t;
+    tagGroup?.append(tagEl);
+  });
 });
