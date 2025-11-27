@@ -156,6 +156,7 @@ async function saveArcacons() {
         packageName: el.getAttribute('data-package-name'),
         title: el.getAttribute('title'),
         expires: Number(subEl.getAttribute('style').match(/expires=(\d+)/)[1]),
+        visible: true,
       };
     });
     await chrome.storage.local.set({ arcacon_package: res });

@@ -103,8 +103,11 @@ async function conListup() {
   heads.forEach((head) => {
     objHeads[head.packageId] = head.src;
   });
+
   // 아바타의 href 속성을 설정하여 scrollspy-js가 타겟을 찾을 수 있도록 합니다.
   customSort.forEach((pId) => {
+    if( packageList.visible ) return;
+    
     // scrollspy-js는 <a> 태그의 href를 참조하므로, <a> 태그를 생성합니다.
     const anchor = document.createElement('a');
     anchor.href = `#${pId}`;
@@ -126,7 +129,7 @@ async function conListup() {
     댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`;
   } else {
     for (const pId of customSort) {
-      if (pId in packageList) await showConPackage(pId, packageList[pId].title);
+      if (pId in packageList && packageList[pId].visible) await showConPackage(pId, packageList[pId].title);
     }
 
     new ScrollSpy('nav', {
@@ -357,26 +360,35 @@ function main() {
     const resizeObserver = new ResizeObserver(updateScrollSpyOffset);
     resizeObserver.observe(navBar);
   }
-
-  customSort.forEach((pid) => {
+  
+  const showDataBase = document.getElementById('showData');
+  customSort.forEach((pID) => {
     // 내보내기 체크박스 목록
     const outmsg = document.createElement('sl-icon');
     outmsg.setAttribute('name', 'box-arrow-up-right');
     outmsg.style.paddingLeft = '5px';
     outmsg.addEventListener('click', () => {
-      chrome.tabs.update({ url: `https://arca.live/e/${pid}` });
+      chrome.tabs.update({ url: `https://arca.live/e/${pID}` });
     });
 
     const box = document.createElement('sl-checkbox');
     box.name = 'package';
-    box.value = pid;
-    box.innerHTML = packageList[pid].packageName + '  ';
+    box.value = pID;
+    box.innerHTML = packageList[pID].packageName + '  ';
 
     const li = document.createElement('li');
     li.append(box);
     li.append(outmsg);
 
     document.getElementById('downloadBox').append(li);
+
+    // 데이터관리-아카콘 숨기기/보이기
+    const showTargetLi = document.createElement('li');
+    const showTarget = document.createElement('sl-switch');
+    showTarget.innerText = packageList[pID].title;
+    if(packageList[pID].visible == true) showTarget.checked = true;
+    showTargetLi.append(showTarget);
+    showDataBase.append(showTargetLi);
   });
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -430,15 +442,6 @@ function main() {
       conListup();
     }
 
-    if (setting.showData) {
-      const visibilityUL = document.getElementById('showData');
-      // 설정값, 이름, 식별자
-    }
-
-    if (setting.deleteData) {
-      const deleteDataUL = document.getElementById('deleteData');
-      //
-    }
   });
 }
 
