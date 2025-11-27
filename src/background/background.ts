@@ -141,19 +141,21 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 
   interface Setting {
-    isSleep?: string;
+    isSleep?: boolean;
     sleepTime?: string;
     conSize?: string;
     sleepOpacity?: string;
+    syncSearch?: boolean;
   }
   // 설정 기본값
   chrome.storage.local.get('arcacon_setting').then((res) => {
     let setting: Setting = res.arcacon_setting || {};
 
-    if (!('isSleep' in setting)) setting.isSleep = 'true';
+    if (!('isSleep' in setting)) setting.isSleep = true;
     if (!('sleepTime' in setting)) setting.sleepTime = '3000';
     if (!('conSize' in setting)) setting.conSize = '50';
     if (!('sleepOpacity' in setting)) setting.sleepOpacity = '50';
+    if (!('syncSearch' in setting)) setting.syncSearch = true;
 
     chrome.storage.local.set({ arcacon_setting: setting });
   });

@@ -11,13 +11,10 @@ import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 import '../popupSetting';
 import '../searchDetail';
 import './jsonImport';
-import { SettingsStore } from './setting';
 
 // 저장된 콘 패키지 목록 순회
-const { arcacon_package: packageList } =
-  (await chrome.storage.local.get('arcacon_package')) || [];
-const { arcacon_enabled: customSort } =
-  (await chrome.storage.local.get('arcacon_enabled')) || [];
+const packageList = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
+const customSort = (await chrome.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
 let conPackage = [];
 let isCombo = false;
 
@@ -105,16 +102,16 @@ async function conListup() {
   });
 
   // 아바타의 href 속성을 설정하여 scrollspy-js가 타겟을 찾을 수 있도록 합니다.
-  customSort.forEach((pId) => {
-    if( packageList.visible ) return;
+  customSort.forEach((pID) => {
+    if(!packageList[pID].visible) return;
     
     // scrollspy-js는 <a> 태그의 href를 참조하므로, <a> 태그를 생성합니다.
     const anchor = document.createElement('a');
-    anchor.href = `#${pId}`;
+    anchor.href = `#${pID}`;
 
     const imgElement = document.createElement('sl-avatar');
-    imgElement.setAttribute('data-id', pId);
-    imgElement.setAttribute('image', URL.createObjectURL(objHeads[pId]));
+    imgElement.setAttribute('data-id', pID);
+    imgElement.setAttribute('image', URL.createObjectURL(objHeads[pID]));
 
     anchor.append(imgElement);
     headerGround.append(anchor);
@@ -348,6 +345,21 @@ document.getElementById('conHeaders').addEventListener('click', (e) => {
   }
 });
 
+// 아카콘 가리기/보이기 설정
+document.getElementById('is-show').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = serialize(e.target);
+  const option = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting;
+  option.syncSearch = (data.syncSearch === 'on');
+  chrome.storage.local.set({ arcacon_setting: option });
+  
+  const pOption = (await chrome.storage.local.get('arcacon_package')).arcacon_package;
+  Object.keys(pOption).forEach((pID) => {
+    pOption[pID].visible = (data[pID] === 'on');
+  });
+  chrome.storage.local.set({ arcacon_package: pOption });
+});
+
 function main() {
   // 백그라운드에 패널의 열림/닫힘 상태를 알립니다.
   chrome.runtime.connect({ name: 'sidepanel-connection' });
@@ -382,18 +394,23 @@ function main() {
 
     document.getElementById('downloadBox').append(li);
 
-    // 데이터관리-아카콘 숨기기/보이기
+    // 아카콘관리-아카콘 숨기기/보이기
     const showTargetLi = document.createElement('li');
     const showTarget = document.createElement('sl-switch');
+    showTarget.setAttribute('name', pID);
     showTarget.innerText = packageList[pID].title;
-    if(packageList[pID].visible == true) showTarget.checked = true;
+    showTarget.checked = packageList[pID].visible;
     showTargetLi.append(showTarget);
     showDataBase.append(showTargetLi);
   });
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'popupSettingMessage') {
-      const dialog = document.querySelector('.dialog-overview');
+      const dialog = document.getElementById('app-setting');
+      dialog.show();
+    }
+    if (msg.action === 'arcaconSettingMessage') {
+      const dialog = document.getElementById('data-manamge');
       dialog.show();
     }
   });

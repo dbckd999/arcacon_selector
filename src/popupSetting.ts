@@ -5,22 +5,29 @@ const settingGround = document.querySelectorAll('#setting [data-setting]');
 settingGround.forEach((el) => el.addEventListener('sl-change', setSetting));
 
 // 설정값 입력
-let setting: { [key: string]: string } = {};
+/*
+interface Setting {
+  isSleep?: boolean;
+  sleepTime?: string;
+  conSize?: string;
+  sleepOpacity?: string;
+  syncSearch?: boolean;
+}
+*/
+let setting: { [key: string]: string|boolean } = {};
 chrome.storage.local.get('arcacon_setting').then((res) => {
   setting = res['arcacon_setting'] || {};
 
-  Object.keys(setting).forEach((key) => {
-    if (key) {
-      const targetElement = document.querySelector(
-        `#setting [data-setting=${key}]`
-      );
-      if (targetElement.tagName === 'SL-SWITCH' && setting[key] === 'true') {
-        targetElement.setAttribute('checked', '');
-      } else {
-        targetElement.setAttribute('value', setting[key]);
-      }
-    }
-  });
+  document.querySelector('#setting [data-setting=isSleep]')
+    .setAttribute('checked', setting.isSleep as string);
+  document.querySelector('#setting [data-setting=sleepTime]')
+    .setAttribute('value', setting.sleepTime as string);
+  document.querySelector('#setting [data-setting=conSize]')
+    .setAttribute('value', setting.conSize as string);
+  document.querySelector('#setting [data-setting=sleepOpacity]')
+    .setAttribute('value', setting.sleepOpacity as string);
+  document.querySelector('#is-show [name=syncSearch]')
+    .setAttribute('checked', setting.syncSearch as string);
 });
 
 // 설정값들 setting객체에 저장
@@ -29,10 +36,10 @@ function setSetting(event: Event) {
   console.log(element);
 
   const key: string = element.getAttribute('data-setting');
-  let value: string = element.value;
+  let value: string|boolean = element.value;
   if (element.tagName === 'SL-SWITCH') {
     const is = !element.hasAttribute('checked');
-    value = String(is);
+    value = is;
   }
   setting[key] = value;
   chrome.storage.local.set({ arcacon_setting: setting });

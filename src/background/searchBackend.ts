@@ -51,8 +51,13 @@ async function updateIndex() {
   for (const head of packagesData) {
     heads[head.packageId] = head.tags;
   }
+
+  const appSetting = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting ?? [];
+  const packageList = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
   const emoticonMapped: IEmoticon[] = emoticons.map((emoticon) => {
-    if (!heads[emoticon.packageId] && !emoticon.tags) return;
+    const pID = emoticon.packageId;
+    if (appSetting.syncSearch && !packageList[pID].visible) return;
+    if (!heads[pID] && !emoticon.tags) return;
     return {
       conId: emoticon.conId,
       tags: emoticon.tags,
