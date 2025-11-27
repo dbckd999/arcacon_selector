@@ -1,4 +1,4 @@
-import db, { IEmoticon, IPackageInfo } from '../database';
+import db, { IEmoticon } from '../database';
 import Fuse from 'fuse.js';
 
 // 인덱스데이터 유지를 위해 백그라운드에서 실행
@@ -14,7 +14,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (fuse === null) {
           sendResponse({ status: 'ok', message: '인덱싱중입니다' });
         } else {
-          const { data } = msg;
           let searchResult = fuse.search(data.join(' '));
           const conIds: number[] = [];
           searchResult.forEach((dict) => {
@@ -23,47 +22,61 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ status: 'ok', data: conIds });
         }
         break;
+      case 'indexUpdate':
+        try{
+          await updateIndex();
+          fuse = await indexing();
+          sendResponse({ status: 'ok' });
+        } catch (error) {
+          console.error('background indexUpdate:', error);
+          sendResponse({ status: 'error', message: error.message });
+        }
+        
+        break;
     }
   })();
   return true;
 });
 
-// 데이터 유지를 위해 백그라운에서 진행
-async function indexing() {
+async function updateIndex() {
+  let index = null;
   const fuseOption = {
     keys: ['tags', 'chosung', 'packageTags'],
     threshold: 0,
     useExtendedSearch: true,
   };
-  const updated = await chrome.storage.local.get('indexUpdating');
-  let index = null;
   const emoticons = await db.emoticon.toArray();
-
-  if (!updated.indexUpdating) {
-    // 저장된 인덱스가 없다면 db쿼리
-    const packagesData = await db.package_info.toArray();
-    const b: { [key: number]: string[] } = {};
-    for (const head of packagesData) {
-      b[head.packageId] = head.tags;
-    }
-    const emoticonMapped: IEmoticon[] = emoticons.map((emoticon) => {
-      if (emoticon.conId || emoticon.tags || b[emoticon.packageId].length === 0)
-        return;
-      return {
-        conId: emoticon.conId,
-        tags: emoticon.tags,
-        chosung: emoticon.chosung,
-        packageTags: b[emoticon.packageId],
-      };
-    });
-
-    index = Fuse.createIndex(fuseOption.keys, emoticonMapped);
-    db.search_index.put(index.toJSON(), 1);
-  } else {
-    // 필요없으면 기존 데이터 불러오기
-    const query = await db.search_index.get(1);
-    index = Fuse.parseIndex(query);
+  const packagesData = await db.package_info.toArray();
+  const heads: { [key: number]: string[] } = {};
+  for (const head of packagesData) {
+    heads[head.packageId] = head.tags;
   }
+  const emoticonMapped: IEmoticon[] = emoticons.map((emoticon) => {
+    if (!heads[emoticon.packageId] && !emoticon.tags) return;
+    return {
+      conId: emoticon.conId,
+      tags: emoticon.tags,
+      chosung: emoticon.chosung,
+      packageTags: heads[emoticon.packageId],
+    };
+  });
+  index = Fuse.createIndex(fuseOption.keys, emoticonMapped).toJSON();
+  db.search_index.put(index, 1);
+  return index;
+}
 
+// 데이터 유지를 위해 백그라운에서 진행
+async function indexing() {
+  const emoticons = await db.emoticon.toArray();
+  const fuseOption = {
+    keys: ['tags', 'chosung', 'packageTags'],
+    threshold: 0,
+    useExtendedSearch: true,
+  };
+  // TODO 초기값 설정하는 코드 작성
+  let savedIndex = await db.search_index.get(1);
+  if (!savedIndex) savedIndex = await updateIndex();
+  let index = Fuse.parseIndex(savedIndex);
+  
   return new Fuse(emoticons, fuseOption, index);
 }

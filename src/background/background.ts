@@ -1,5 +1,6 @@
 import db, { IEmoticon, IPackageInfo } from '../database';
 import { downloadResource } from '../util/download';
+import './searchBackend';
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -25,11 +26,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           await db.package_info.update(pid, { tags: msg.head });
           sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
 
-          // TODO 태그 인덱스 추가, 저장
         } catch (error) {
           console.error('background updateTags:', error);
           sendResponse({ status: 'error', message: error.message });
         }
+        chrome.runtime.sendMessage({action: 'indexUpdate' });
         break;
 
       // 패키지 조회

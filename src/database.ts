@@ -39,7 +39,7 @@ class ArcaconDB extends Dexie {
       // 기본키는 conId, packageId와 tags는 인덱싱합니다.
       emoticon: 'conId, packageId, *tags, *chosung',
       base_emoticon: 'packageId',
-      search_index: '++id',
+      search_index: 'id',
       package_info: 'packageId, *tags',
     });
   }
