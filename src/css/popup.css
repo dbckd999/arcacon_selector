@@ -80,3 +80,7 @@ nav > sl-divider {
 .glue li {
   list-style: none;
 }
+
+sl-tab-group{
+  padding-top: 0;
+}

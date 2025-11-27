@@ -133,6 +133,12 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ['action'], // 'action'은 확장 프로그램 아이콘의 우클릭 메뉴를 의미합니다.
     enabled: false,
   });
+  chrome.contextMenus.create({
+    id: 'arcaconSetting', // 메뉴 항목의 고유 ID
+    title: '아카콘 설정', // 메뉴에 표시될 텍스트
+    contexts: ['action'], // 'action'은 확장 프로그램 아이콘의 우클릭 메뉴를 의미합니다.
+    enabled: false,
+  });
 
   interface Setting {
     isSleep?: string;
@@ -167,6 +173,18 @@ chrome.runtime.onConnect.addListener((port) => {
         enabled: false,
       });
     });
+
+    chrome.contextMenus.update('arcaconSetting', {
+      title: '아카콘설정',
+      enabled: true,
+    });
+
+    port.onDisconnect.addListener(() => {
+      chrome.contextMenus.update('arcaconSetting', {
+        title: '아카콘설정-패널을 열어주세요',
+        enabled: false,
+      });
+    });
   }
 });
 
@@ -176,5 +194,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'popupSetting') {
     // 팝업(사이드 패널)에 메시지를 보내 설정 다이얼로그를 열도록 합니다.
     chrome.runtime.sendMessage({ action: 'popupSettingMessage' });
+  }
+  if (info.menuItemId === 'arcaconSetting') {
+    // 팝업(사이드 패널)에 메시지를 보내 설정 다이얼로그를 열도록 합니다.
+    chrome.runtime.sendMessage({ action: 'arcaconSettingMessage' });
   }
 });
