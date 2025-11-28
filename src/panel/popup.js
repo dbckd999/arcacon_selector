@@ -18,6 +18,7 @@ const customSort = (await chrome.storage.local.get('arcacon_enabled')).arcacon_e
 let conPackage = [];
 let isCombo = false;
 
+// 콤보콘 활성시 게시 목록에 추가
 function addCombocon(groupId, conId, thumbnail) {
   if (conPackage.length >= 3) {
     conPackage.shift();
@@ -27,6 +28,7 @@ function addCombocon(groupId, conId, thumbnail) {
   document.getElementById('comboConWrap').append(thumbnail);
 }
 
+// 특정 패키지 출력
 async function showConPackage(packageId, pakcageName) {
   packageId = Number(packageId);
   const ground = document.getElementById('conWrap');
@@ -91,6 +93,7 @@ async function showConPackage(packageId, pakcageName) {
   }
 }
 
+// 전체 아카콘 목록 출력
 async function conListup() {
   // 아카콘 대표 목록
   const headerGround = document.getElementById('conHeaders');
@@ -171,6 +174,7 @@ ScrollSpy.prototype.isInView = function (el) {
   return rect.top <= scrollSpyOffset && rect.bottom >= scrollSpyOffset;
 };
 
+// 패키지 목록 json파일화, zip파일로 다운로드.
 async function downloadTags(packageIds) {
   const z = JSZip();
   const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -202,6 +206,35 @@ async function downloadTags(packageIds) {
   }
 }
 
+// 아카콘 가리기/보이기 설정
+document.getElementById('is-show').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = serialize(e.target);
+  const option = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting;
+  option.syncSearch = (data.syncSearch === 'on');
+  chrome.storage.local.set({ arcacon_setting: option });
+  
+  const pOption = (await chrome.storage.local.get('arcacon_package')).arcacon_package;
+  Object.keys(pOption).forEach((pID) => {
+    pOption[pID].visible = (data[pID] === 'on');
+  });
+  chrome.storage.local.set({ arcacon_package: pOption });
+});
+
+// 아카콘 관리페이지 이동
+document.getElementById('listModify').addEventListener('click', () => {
+  chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
+});
+
+// 태그 내보내기
+document.getElementById('downloadForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const data = serialize(e.target);
+  if (data.package === undefined) return;
+  if (typeof data.package === 'string') data.package = [data.package];
+  downloadTags(data.package);
+});
+
 // 콤보콘 상태변경
 const repleyComboBtn = document.getElementById('recordCombocon');
 document.getElementById('comboCon').addEventListener('sl-change', (e) => {
@@ -224,10 +257,16 @@ document.getElementById('comboConWrap').addEventListener('click', (e) => {
   }
 });
 
+// 아카콘 대표목록 가로휠
+document.getElementById('conHeaders').addEventListener('wheel', (e) => {
+  if (e.deltaX === 0 && Math.abs(e.deltaY) > 0) {
+    conHeaders.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+});
+
 // 콤보콘 게시
-document
-  .getElementById('recordCombocon')
-  .addEventListener('click', async () => {
+document.getElementById('recordCombocon').addEventListener('click', async () => {
     conReady = false;
     document.getElementById('comboCon').click();
     const [tab] = await chrome.tabs.query({
@@ -243,7 +282,7 @@ document
     } else {
       notify(status, 'danger');
     }
-  });
+});
 
 // 아카콘 클릭
 let conReady = true;
@@ -293,28 +332,6 @@ document.getElementById('conWrap').addEventListener('click', async (e) => {
   }
 });
 
-// 목록 수정하러가기
-document.getElementById('listModify').addEventListener('click', () => {
-  chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
-});
-
-// 태그 내보내기
-document.getElementById('downloadForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const data = serialize(e.target);
-  if (data.package === undefined) return;
-  if (typeof data.package === 'string') data.package = [data.package];
-  downloadTags(data.package);
-});
-
-// 아카콘 대표목록 가로휠
-document.getElementById('conHeaders').addEventListener('wheel', (e) => {
-  if (e.deltaX === 0 && Math.abs(e.deltaY) > 0) {
-    conHeaders.scrollLeft += e.deltaY;
-    e.preventDefault();
-  }
-});
-
 // 아카콘 대표 이미지 클릭 시 오프셋을 적용하여 스크롤하는 기능
 document.getElementById('conHeaders').addEventListener('click', (e) => {
   // 클릭된 요소가 <a> 태그인지 확인
@@ -345,25 +362,11 @@ document.getElementById('conHeaders').addEventListener('click', (e) => {
   }
 });
 
-// 아카콘 가리기/보이기 설정
-document.getElementById('is-show').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = serialize(e.target);
-  const option = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting;
-  option.syncSearch = (data.syncSearch === 'on');
-  chrome.storage.local.set({ arcacon_setting: option });
-  
-  const pOption = (await chrome.storage.local.get('arcacon_package')).arcacon_package;
-  Object.keys(pOption).forEach((pID) => {
-    pOption[pID].visible = (data[pID] === 'on');
-  });
-  chrome.storage.local.set({ arcacon_package: pOption });
-});
-
 function main() {
-  // 백그라운드에 패널의 열림/닫힘 상태를 알립니다.
+  // 1. 백그라운드에 패널을 연결해 메뉴의 일부항목 활성
   chrome.runtime.connect({ name: 'sidepanel-connection' });
 
+  // 2. 콘 위치감지 오프셋 커스텀
   // 초기 offset 값을 계산합니다.
   updateScrollSpyOffset();
   // nav 요소의 크기가 변경될 때마다 offset 값을 다시 계산하도록 ResizeObserver를 설정합니다.
@@ -373,9 +376,10 @@ function main() {
     resizeObserver.observe(navBar);
   }
   
+  // 3. 콘 정렬에 맞춰 동작
   const showDataBase = document.getElementById('showData');
   customSort.forEach((pID) => {
-    // 내보내기 체크박스 목록
+    // 3.1 내보내기 체크박스 목록
     const outmsg = document.createElement('sl-icon');
     outmsg.setAttribute('name', 'box-arrow-up-right');
     outmsg.style.paddingLeft = '5px';
@@ -394,7 +398,7 @@ function main() {
 
     document.getElementById('downloadBox').append(li);
 
-    // 아카콘관리-아카콘 숨기기/보이기
+    // 3.2 아카콘관리-아카콘 숨기기/보이기
     const showTargetLi = document.createElement('li');
     const showTarget = document.createElement('sl-switch');
     showTarget.setAttribute('name', pID);
@@ -404,6 +408,7 @@ function main() {
     showDataBase.append(showTargetLi);
   });
 
+  // 4. 데이터 완료후 메뉴접근 활성화
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'popupSettingMessage') {
       const dialog = document.getElementById('app-setting');
@@ -415,7 +420,7 @@ function main() {
     }
   });
 
-  // 설정값 불러온 뒤 동작
+  // 5. 설정값 앱에 적용
   chrome.storage.local.get('arcacon_setting').then((res) => {
     const setting = res.arcacon_setting;
 
