@@ -1,32 +1,16 @@
 'use strict';
 
+// 전역변수는 별도로 관리
+import * as state from './state'
 import '../css/popup.css';
 
-import { notify } from '../util/notify';
 import db from '../database';
-import * as JSZip from 'jszip';
-import ScrollSpy from 'scrollspy-js';
-import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js';
 
+import ScrollSpy from 'scrollspy-js';
 import '../popupSetting';
 import '../searchDetail';
 import './jsonImport';
-
-// 저장된 콘 패키지 목록 순회
-const packageList = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
-const customSort = (await chrome.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
-let conPackage = [];
-let isCombo = false;
-
-// 콤보콘 활성시 게시 목록에 추가
-function addCombocon(groupId, conId, thumbnail) {
-  if (conPackage.length >= 3) {
-    conPackage.shift();
-    document.querySelector('div#comboConWrap *').remove();
-  }
-  conPackage.push([groupId, conId]);
-  document.getElementById('comboConWrap').append(thumbnail);
-}
+import './listener'
 
 // 특정 패키지 출력
 async function showConPackage(packageId, pakcageName) {
@@ -38,7 +22,7 @@ async function showConPackage(packageId, pakcageName) {
   if (_thumbnail_wrapper) {
     _thumbnail_wrapper.remove();
   }
-  if (customSort && customSort.indexOf(packageId) === -1) return;
+  if (state.customSort && state.customSort.indexOf(packageId) === -1) return;
 
   // 입력할 칸만 미리 만들어놓고 db관련은 비동기로 진행
   const thumbnail_wrapper = document.createElement('div');
@@ -105,8 +89,8 @@ async function conListup() {
   });
 
   // 아바타의 href 속성을 설정하여 scrollspy-js가 타겟을 찾을 수 있도록 합니다.
-  customSort.forEach((pID) => {
-    if(!packageList[pID].visible) return;
+  state.customSort.forEach((pID) => {
+    if(!state.packageList[pID].visible) return;
     
     // scrollspy-js는 <a> 태그의 href를 참조하므로, <a> 태그를 생성합니다.
     const anchor = document.createElement('a');
@@ -123,13 +107,13 @@ async function conListup() {
   // 아카콘 상세 이미지들 (스크롤 대상 컨테이너)
   const ground = document.getElementById('conWrap');
   ground.innerHTML = '';
-  if (!customSort || customSort.length === 0) {
+  if (!state.customSort || state.customSort.length === 0) {
     ground.innerHTML = `
     아카콘 목록이 비어있습니다.<br/>
     댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`;
   } else {
-    for (const pId of customSort) {
-      if (pId in packageList && packageList[pId].visible) await showConPackage(pId, packageList[pId].title);
+    for (const pId of state.customSort) {
+      if (pId in state.packageList && state.packageList[pId].visible) await showConPackage(pId, state.packageList[pId].title);
     }
 
     new ScrollSpy('nav', {
@@ -174,228 +158,11 @@ ScrollSpy.prototype.isInView = function (el) {
   return rect.top <= scrollSpyOffset && rect.bottom >= scrollSpyOffset;
 };
 
-// 패키지 목록 json파일화, zip파일로 다운로드.
-async function downloadTags(packageIds) {
-  const z = JSZip();
-  const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-
-  const loading = packageIds.map(async (packageId) => {
-    const { status, data: tags } = await chrome.runtime.sendMessage({
-      action: 'getTags',
-      data: Number(packageId),
-    });
-    // JSZip은 문자열을 직접 받을 수 있으므로 Blob을 생성할 필요가 없습니다.
-    const content = JSON.stringify(tags, null, 2);
-    return { packageId, content };
-  });
-  const done = await Promise.all(loading);
-
-  done.forEach((file) => {
-    z.file(`${file.packageId}-${yymmdd}.json`, file.content);
-  });
-  const file = await z.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(file);
-  try {
-    chrome.downloads.download({
-      url: url,
-      filename: `arcacons-tags-${yymmdd}.zip`, // 여러 json을 압축했으므로 .zip 확장자가 더 적절합니다.
-      saveAs: true,
-    });
-  } catch (e) {
-    console.log(e);
-  }
-}
-
-// 아카콘 가리기/보이기 설정
-document.getElementById('is-show').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = serialize(e.target);
-  try{
-  // 검색결과와 연동
-  const option = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting;
-  option.syncSearch = (data.syncSearch === 'on');
-  chrome.storage.local.set({ arcacon_setting: option });
-  
-  const pOption = (await chrome.storage.local.get('arcacon_package')).arcacon_package;
-  Object.keys(pOption).forEach((pID) => {
-    pOption[pID].visible = (data[pID] === 'on');
-  });
-  chrome.storage.local.set({ arcacon_package: pOption });
-  
-  chrome.runtime.onMessage({ action: 'indexUpdate' });
-  } catch (e) {
-    console.error(e);
-  }
-  notify('설정을 저장했습니다.', 'check-circle');
-  document.getElementById('data-manamge').hide();
-});
-
-// 아카콘 데이터 삭제
-document.getElementById('delete-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = serialize(e.target);
-  console.log(data);
-  const ids = Object.keys(data).map(Number);
-  ids.forEach((id) => {
-    // indexedDB에서 삭제
-    db.emoticon.where('packageId').equals(id).delete();
-    db.base_emoticon.where('packageId').equals(id).delete();
-    // 로컬 스토리지 삭제
-    delete packageList[id];
-    // 정렬된 목록에서 삭제
-    customSort.splice(customSort.indexOf(id), 1);
-  });
-  
-  // 삭제 완료된 데이터 저장
-  chrome.storage.local.set({ arcacon_package: packageList });
-  chrome.storage.local.set({ arcacon_enabled: customSort });
-  // 검색 인덱싱 갱신 요청
-  chrome.runtime.sendMessage({ action: 'indexUpdate' });
-
-  notify(`${ids.length}개의 아카콘 데이터를 삭제했습니다.
-    다시 열어주세요.`);
-});
-
 // 아카콘 관리페이지 이동
 document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
 
-// 태그 내보내기
-document.getElementById('downloadForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const data = serialize(e.target);
-  if (data.package === undefined) return;
-  if (typeof data.package === 'string') data.package = [data.package];
-  downloadTags(data.package);
-});
-
-// 콤보콘 상태변경
-const repleyComboBtn = document.getElementById('recordCombocon');
-document.getElementById('comboCon').addEventListener('sl-change', (e) => {
-  isCombo = !e.target.hasAttribute('checked');
-  if (isCombo) {
-    // 콤보콘 설정이 활성화 되었을때
-    repleyComboBtn.removeAttribute('disabled');
-  } else {
-    repleyComboBtn.setAttribute('disabled', true);
-    conPackage = [];
-    document.getElementById('comboConWrap').innerHTML = '';
-  }
-});
-
-// 콤보콘 이미지클릭시 삭제
-document.getElementById('comboConWrap').addEventListener('click', (e) => {
-  const thumbnail = e.target.closest('img');
-  if (thumbnail) {
-    thumbnail.remove();
-  }
-});
-
-// 아카콘 대표목록 가로휠
-document.getElementById('conHeaders').addEventListener('wheel', (e) => {
-  if (e.deltaX === 0 && Math.abs(e.deltaY) > 0) {
-    conHeaders.scrollLeft += e.deltaY;
-    e.preventDefault();
-  }
-});
-
-// 콤보콘 게시
-document.getElementById('recordCombocon').addEventListener('click', async () => {
-    conReady = false;
-    document.getElementById('comboCon').click();
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    const { status } = await chrome.tabs.sendMessage(tab.id, {
-      action: 'recordCombocon',
-      data: conPackage,
-    });
-    if (status === 'ok') {
-      conReady = true;
-    } else {
-      notify(status, 'danger');
-    }
-});
-
-// 아카콘 클릭
-let conReady = true;
-document.getElementById('conWrap').addEventListener('click', async (e) => {
-  // 클릭된 요소가 .thumbnail인지 확인
-  const groupEl = e.target.closest('.package-wrap');
-  const groupId = groupEl ? groupEl.getAttribute('data-package-id') : null;
-  const thumbnail = e.target.closest('.thumbnail');
-  const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
-  const title = e.target.closest('.package-title');
-
-  if (title) {
-    // 패키지 제목 클릭 시
-    chrome.tabs.update({ url: `https://arca.live/e/${groupId}` });
-  } else if (thumbnail) {
-    // 썸네일 이미지 클릭 시
-    if (conReady && isCombo) {
-      // 단순 엘리먼트 추가
-      addCombocon(groupId, conId, thumbnail.cloneNode(true));
-    } else if (conReady && !isCombo) {
-      try {
-        conReady = false;
-        const [tab] = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        });
-        const { status } = await chrome.tabs.sendMessage(tab.id, {
-          action: 'recordEmoticon',
-          data: {
-            emoticonId: groupId,
-            attachmentId: conId,
-          },
-        });
-        if (status === 'ok') {
-          conReady = true;
-        } else {
-          notify('아카라이브의 콘솔을 확인해주세요.', 'danger');
-        }
-      } catch (e) {
-        conReady = true;
-        notify(e, 'danger');
-        console.error(e);
-      }
-    } else {
-      notify('전송중입니다.', 'warning', 3000);
-    }
-  }
-});
-
-// 아카콘 대표 이미지 클릭 시 오프셋을 적용하여 스크롤하는 기능
-document.getElementById('conHeaders').addEventListener('click', (e) => {
-  // 클릭된 요소가 <a> 태그인지 확인
-  const anchor = e.target.closest('a');
-  if (!anchor) return;
-
-  // 기본 앵커 동작(즉시 스크롤)을 막습니다.
-  e.preventDefault();
-
-  const href = anchor.getAttribute('href');
-  if (!href || href === '#') return;
-
-  const targetId = href.substring(1);
-  const targetElement = document.getElementById(targetId);
-
-  if (targetElement) {
-    const navBar = document.querySelector('nav');
-    const navHeight = navBar ? navBar.offsetHeight : 0;
-    // isInView에서 사용한 오프셋과 동일하게 설정
-    const offset = navHeight;
-
-    const elementPosition = targetElement.getBoundingClientRect().top;
-    const offsetPosition =
-      elementPosition + document.documentElement.scrollTop - offset;
-
-    // 계산된 위치로 부드럽게 스크롤
-    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-  }
-});
 
 // 동적 항목을 주로 다룸
 function main() {
@@ -414,7 +181,7 @@ function main() {
   
   // 3. 콘 정렬에 맞춰 동작
   const showDataBase = document.getElementById('showData');
-  customSort.forEach((pID) => {
+  state.customSort.forEach((pID) => {
     // 3.1 내보내기 체크박스 목록
     const outmsg = document.createElement('sl-icon');
     outmsg.setAttribute('name', 'box-arrow-up-right');
@@ -426,7 +193,7 @@ function main() {
     const box = document.createElement('sl-checkbox');
     box.name = 'package';
     box.value = pID;
-    box.innerHTML = packageList[pID].packageName + '  ';
+    box.innerHTML = state.packageList[pID].packageName + '  ';
     
     const li = document.createElement('li');
     li.append(box);
@@ -438,8 +205,8 @@ function main() {
     const showTargetLi = document.createElement('li');
     const showTarget = document.createElement('sl-switch');
     showTarget.setAttribute('name', pID);
-    showTarget.innerText = packageList[pID].title;
-    showTarget.checked = packageList[pID].visible;
+    showTarget.innerText = state.packageList[pID].title;
+    showTarget.checked = state.packageList[pID].visible;
     showTargetLi.append(showTarget);
     showDataBase.append(showTargetLi);
   });
@@ -447,11 +214,11 @@ function main() {
   // 4. 콘 삭제목록(보이는,가려진 + 사용불가능한)
   const deleteForm = document.getElementById('delete-data');
   // <li><sl-checkbox>나쁜 버터콘</sl-checkbox></li>
-  customSort.forEach((pID) => {
+  state.customSort.forEach((pID) => {
     const li = document.createElement('li');
     const box = document.createElement('sl-checkbox');
     li.append(box);
-    box.innerText = packageList[pID].title;
+    box.innerText = state.packageList[pID].title;
     box.setAttribute('name', pID);
     deleteForm.append(li);
   });
