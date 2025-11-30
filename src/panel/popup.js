@@ -210,6 +210,7 @@ async function downloadTags(packageIds) {
 document.getElementById('is-show').addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = serialize(e.target);
+  try{
   // 검색결과와 연동
   const option = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting;
   option.syncSearch = (data.syncSearch === 'on');
@@ -222,6 +223,11 @@ document.getElementById('is-show').addEventListener('submit', async (e) => {
   chrome.storage.local.set({ arcacon_package: pOption });
   
   chrome.runtime.onMessage({ action: 'indexUpdate' });
+  } catch (e) {
+    console.error(e);
+  }
+  notify('설정을 저장했습니다.', 'check-circle');
+  document.getElementById('data-manamge').hide();
 });
 
 // 아카콘 데이터 삭제
