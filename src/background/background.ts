@@ -9,10 +9,11 @@ chrome.sidePanel
 // 백그라운드 onMessage 리스너
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const data: any = msg.data;
+  const packageId:number = msg.packageId;
   (async () => {
     switch (msg.action) {
       case 'updateTags':
-        const pid = data[0].packageId;
+        // const pid = data[0].packageId;
         const updates = data.map((item: IEmoticon) => ({
           key: item.conId,
           changes: {
@@ -22,10 +23,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }));
         console.log(updates);
         try {
-          await db.emoticon.bulkUpdate(updates);
-          await db.package_info.update(pid, { tags: msg.head });
+          await db.emoticon.bulkPut(updates);
+          await db.package_info.put({packageId:packageId, tags: msg.head }, packageId);
           sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
-
         } catch (error) {
           console.error('background updateTags:', error);
           sendResponse({ status: 'error', message: error.message });
@@ -79,8 +79,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         result[pId] = tags;
 
         const headerTags = await db.package_info.get(pId);
+        console.log(headerTags);
 
-        sendResponse({ status: 'ok', data: result, head: headerTags });
+        sendResponse({ status: 'ok', data: result, head: headerTags || [] });
         break;
 
       case 'resourceCollect': {

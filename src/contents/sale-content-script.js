@@ -80,6 +80,7 @@ function createTagFromElement() {
       action: 'updateTags',
       data: mapped,
       head: headData,
+      packageId: packageId,
     });
     if (status === 'ok') {
       alert(message);
@@ -124,6 +125,7 @@ function createCollectElement() {
       .sendMessage({
         action: 'resourceCollect',
         data: elements,
+        packageId: packageId,
       })
       .then((response) => {
         if (response.status === 'ok') {
