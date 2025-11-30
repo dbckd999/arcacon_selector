@@ -149,20 +149,35 @@ async function saveArcacons() {
     alert('아카콘을 목록을 열어주세요.');
     return;
   } else {
+    // 기존 모든 콘 정보
+    const origin = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? {};
+    // 원본 데이터는 우선 visible: false로. 새로운값은 true로 덮어쓰기됨
+    for (const key in origin) {
+      origin[key].visible = false;
+      origin[key].available = false;
+    }
+
+    // 새로 받아온 정보
     const res = {};
+    const originKeys = Object.keys(origin);
     gc.map((el) => {
       const subEl = el.querySelector('div');
       res[Number(el.getAttribute('data-package-id'))] = {
         packageName: el.getAttribute('data-package-name'),
         title: el.getAttribute('title'),
         expires: Number(subEl.getAttribute('style').match(/expires=(\d+)/)[1]),
-        visible: true,
+        // visible은 기존값을 가져온다.
+        visible: (Number(el.getAttribute('data-package-id')) in originKeys) ? origin[Number(el.getAttribute('data-package-id'))].visible : true,
+        available: true
       };
     });
-    await chrome.storage.local.set({ arcacon_package: res });
+    await chrome.storage.local.set({ arcacon_package: Object.assign(origin, res) });
+
     const enabledList = gc.map((e) => {
       return Number(e.getAttribute('data-package-id'));
     });
+    
+    // 표시 순서전용
     await chrome.storage.local.set({ arcacon_enabled: enabledList });
 
     // 아카콘 대표 이미지

@@ -221,6 +221,34 @@ document.getElementById('is-show').addEventListener('submit', async (e) => {
   chrome.storage.local.set({ arcacon_package: pOption });
 });
 
+// 아카콘 데이터 삭제
+// TODO 삭제 행동 ㄱㄱ
+// TODO 전체선택도
+document.getElementById('delete-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = serialize(e.target);
+  console.log(data);
+  const ids = Object.keys(data).map(Number);
+  ids.forEach((id) => {
+    // indexedDB에서 삭제
+    db.emoticon.where('packageId').equals(id).delete();
+    db.base_emoticon.where('packageId').equals(id).delete();
+    // 로컬 스토리지 삭제
+    delete packageList[id];
+    // 정렬된 목록에서 삭제
+    customSort.splice(customSort.indexOf(id), 1);
+  });
+  
+  // 삭제 완료된 데이터 저장
+  chrome.storage.local.set({ arcacon_package: packageList });
+  chrome.storage.local.set({ arcacon_enabled: customSort });
+  // 검색 인덱싱 갱신 요청
+  chrome.runtime.sendMessage({ action: 'indexUpdate' });
+
+  notify(`${ids.length}개의 아카콘 데이터를 삭제했습니다.
+    다시 열어주세요.`);
+});
+
 // 아카콘 관리페이지 이동
 document.getElementById('listModify').addEventListener('click', () => {
   chrome.tabs.update({ url: 'https://arca.live/settings/emoticons' });
@@ -362,6 +390,7 @@ document.getElementById('conHeaders').addEventListener('click', (e) => {
   }
 });
 
+// 동적 항목을 주로 다룸
 function main() {
   // 1. 백그라운드에 패널을 연결해 메뉴의 일부항목 활성
   chrome.runtime.connect({ name: 'sidepanel-connection' });
@@ -386,18 +415,18 @@ function main() {
     outmsg.addEventListener('click', () => {
       chrome.tabs.update({ url: `https://arca.live/e/${pID}` });
     });
-
+    
     const box = document.createElement('sl-checkbox');
     box.name = 'package';
     box.value = pID;
     box.innerHTML = packageList[pID].packageName + '  ';
-
+    
     const li = document.createElement('li');
     li.append(box);
     li.append(outmsg);
-
+    
     document.getElementById('downloadBox').append(li);
-
+    
     // 3.2 아카콘관리-아카콘 숨기기/보이기
     const showTargetLi = document.createElement('li');
     const showTarget = document.createElement('sl-switch');
@@ -407,8 +436,21 @@ function main() {
     showTargetLi.append(showTarget);
     showDataBase.append(showTargetLi);
   });
-
-  // 4. 데이터 완료후 메뉴접근 활성화
+  
+  // 4. 콘 삭제목록(보이는,가려진 + 사용불가능한)
+  const deleteForm = document.getElementById('delete-data');
+  // <li><sl-checkbox>나쁜 버터콘</sl-checkbox></li>
+  customSort.forEach((pID) => {
+    const li = document.createElement('li');
+    const box = document.createElement('sl-checkbox');
+    li.append(box);
+    box.innerText = packageList[pID].title;
+    box.setAttribute('name', pID);
+    deleteForm.append(li);
+  });
+  
+  
+  // 5. 데이터 완료후 메뉴접근 활성화
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'popupSettingMessage') {
       const dialog = document.getElementById('app-setting');

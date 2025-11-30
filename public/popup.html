@@ -67,20 +67,18 @@
       </sl-tab-panel>
       
       <sl-tab-panel name="delete-data">
-        <form>
-          <li><sl-checkbox>전체 선택</sl-checkbox></li>
+        <li><sl-checkbox>전체 선택</sl-checkbox></li>
+        <form id="delete-form">
           <!-- TODO 아카콘 목록 표시 -->
-          <ul id="deleteData" class="glue">
-            <li><sl-checkbox>나쁜 버터콘</sl-checkbox></li>
-          </ul>
+          <ul id="delete-data" class="glue"></ul>
           <sl-button type="submit" variant="danger" size="small">삭제</sl-button>
         </form>
-        <sl-button size="small">숨기기/보이기에 없는 목록 선택</sl-button>
+        <sl-button size="small">숨기기/보이기에 없는 항목 선택</sl-button>
       </sl-tab-panel>
 
       <sl-tab-panel name="export">
+        <h3>내보낼 태그의 아카콘을 선택하세요</h3>
         <form id="downloadForm">
-          <h3>내보낼 태그의 아카콘을 선택하세요</h3>
           <ul id="downloadBox" class="glue"></ul>
           <br />
           <sl-button type="reset" slot="footer" variant="default" id="downloadBoxInit">초기화</sl-button>
