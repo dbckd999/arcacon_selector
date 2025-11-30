@@ -39,7 +39,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 async function updateIndex() {
-  let index = null;
+  let index = { id:1, data: {} };
   const fuseOption = {
     keys: ['tags', 'chosung', 'packageTags'],
     threshold: 0,
@@ -65,8 +65,8 @@ async function updateIndex() {
       packageTags: heads[emoticon.packageId],
     };
   });
-  index = Fuse.createIndex(fuseOption.keys, emoticonMapped).toJSON();
-  db.search_index.put(index, 1);
+  index.data = Fuse.createIndex(fuseOption.keys, emoticonMapped).toJSON();
+  await db.search_index.put(index, 1);
   return index;
 }
 
@@ -80,8 +80,8 @@ async function indexing() {
   };
   // TODO 초기값 설정하는 코드 작성
   let savedIndex = await db.search_index.get(1);
-  if (!savedIndex) savedIndex = await updateIndex();
-  let index = Fuse.parseIndex(savedIndex);
+  if (!savedIndex.data) savedIndex.data = await updateIndex();
+  let index = Fuse.parseIndex(savedIndex.data);
   
   return new Fuse(emoticons, fuseOption, index);
 }
