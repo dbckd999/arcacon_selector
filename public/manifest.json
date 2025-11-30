@@ -24,12 +24,9 @@
     "identity",
     "sidePanel",
     "downloads",
-    "contextMenus",
-    "notifications"
+    "contextMenus"
   ],
   "host_permissions": [
-    "https://auth.dbckd999.xyz/*",
-    "https://api.dbckd999.xyz/*",
     "https://ac-p1.namu.la/"
   ],
   "content_scripts": [
