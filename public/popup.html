@@ -60,20 +60,17 @@
       <sl-tab-panel name="is-show">
         <form id="is-show">
           <sl-checkbox name="syncSearch">검색결과와 연동</sl-checkbox>
-          <!-- TODO 아카콘 목록과 상호작용 -->
           <ul id="showData" class="glue"></ul>
           <sl-button type="submit" variant="primary" size="small">저장</sl-button>
         </form>
       </sl-tab-panel>
       
       <sl-tab-panel name="delete-data">
-        <li><sl-checkbox>전체 선택</sl-checkbox></li>
         <form id="delete-form">
-          <!-- TODO 아카콘 목록 표시 -->
           <ul id="delete-data" class="glue"></ul>
           <sl-button type="submit" variant="danger" size="small">삭제</sl-button>
         </form>
-        <sl-button size="small">숨기기/보이기에 없는 항목 선택</sl-button>
+        <sl-button size="small">사용 불가능한 항목 선택</sl-button>
       </sl-tab-panel>
 
       <sl-tab-panel name="export">

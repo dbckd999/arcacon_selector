@@ -210,6 +210,7 @@ async function downloadTags(packageIds) {
 document.getElementById('is-show').addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = serialize(e.target);
+  // 검색결과와 연동
   const option = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting;
   option.syncSearch = (data.syncSearch === 'on');
   chrome.storage.local.set({ arcacon_setting: option });
@@ -219,11 +220,11 @@ document.getElementById('is-show').addEventListener('submit', async (e) => {
     pOption[pID].visible = (data[pID] === 'on');
   });
   chrome.storage.local.set({ arcacon_package: pOption });
+  
+  chrome.runtime.onMessage({ action: 'indexUpdate' });
 });
 
 // 아카콘 데이터 삭제
-// TODO 삭제 행동 ㄱㄱ
-// TODO 전체선택도
 document.getElementById('delete-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = serialize(e.target);
