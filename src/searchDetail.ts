@@ -13,9 +13,10 @@ if (!searchResult) {
 
 const searchTest = new ArcaconTagSearch(searchResult);
 searchResult.addEventListener('onSearch', async (event: Event) => {
+  const searchResultEl = document.querySelector('#searchResult .images-container');
   const e = event as CustomEvent<number[]>;
   if (searchResult) {
-    searchResult.innerHTML = '<span>검색결과</span><br>';
+    searchResultEl.innerHTML = '';
 
     const conIds = e.detail;
     db.emoticon.bulkGet(conIds).then((cons) => {
@@ -25,7 +26,7 @@ searchResult.addEventListener('onSearch', async (event: Event) => {
         thumbnail.setAttribute('class', 'thumbnail');
         thumbnail.src = URL.createObjectURL(con.image);
         thumbnail.setAttribute('data-id', con.conId.toString());
-        searchResult.append(thumbnail);
+        searchResultEl.append(thumbnail);
       });
     });
   }
