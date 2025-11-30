@@ -56,9 +56,7 @@ async function updateIndex() {
   const packageList = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
   const emoticonMapped: IEmoticon[] = emoticons.map((emoticon) => {
     const pID = emoticon.packageId;
-    // 연동유무
     if (appSetting.syncSearch && !packageList[pID].visible) return;
-    // 태그 유무
     if (!heads[pID] && !emoticon.tags) return;
     return {
       conId: emoticon.conId,
@@ -80,6 +78,7 @@ async function indexing() {
     threshold: 0,
     useExtendedSearch: true,
   };
+  // TODO 초기값 설정하는 코드 작성
   let savedIndex = await db.search_index.get(1);
   if (!savedIndex) savedIndex = await updateIndex();
   let index = Fuse.parseIndex(savedIndex);
