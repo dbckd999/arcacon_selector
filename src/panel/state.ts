@@ -19,11 +19,11 @@ export let conPackage: [string, string][] = [];
  * chrome.storage에서 데이터를 비동기적으로 로드하여 상태 변수를 초기화합니다.
  * 애플리케이션 시작 시 한 번만 호출되어야 합니다.
  */
-(async function initializeState(): Promise<void> {
+export async function initializeState(): Promise<void> {
   const storageData = await chrome.storage.local.get([
     'arcacon_package',
     'arcacon_enabled',
   ]);
   packageList = storageData.arcacon_package ?? {};
   customSort = storageData.arcacon_enabled ?? [];
-})();
+}

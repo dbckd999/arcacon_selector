@@ -165,7 +165,10 @@ document.getElementById('listModify').addEventListener('click', () => {
 
 
 // 동적 항목을 주로 다룸
-function main() {
+async function main() {
+  // 0. 전역변수 초기화
+  await state.initializeState();
+
   // 1. 백그라운드에 패널을 연결해 메뉴의 일부항목 활성
   chrome.runtime.connect({ name: 'sidepanel-connection' });
 
