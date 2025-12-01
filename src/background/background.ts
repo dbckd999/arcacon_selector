@@ -1,6 +1,6 @@
 import db, { IEmoticon, IPackageInfo } from '../database';
 import { downloadResource } from '../util/download';
-import './searchBackend';
+import { fuse, indexing, updateIndex } from './searchBackend';
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -25,10 +25,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         try {
           await db.emoticon.bulkPut(updates);
           await db.package_info.put({packageId:packageId, tags: msg.head }, packageId);
-          await chrome.runtime.sendMessage({ action: 'indexUpdate' });
-          sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
         } catch (error) {
           console.error('background updateTags:', error);
+          sendResponse({ status: 'error', message: error.message });
+        }
+        // 단방향 메시지라 같은 리스너엔 불가
+        try{
+          await updateIndex();
+          await indexing();
+          sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
+        } catch (error) {
+          console.error('background indexUpdate:', error);
           sendResponse({ status: 'error', message: error.message });
         }
         break;
@@ -120,6 +127,31 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ status: 'error', message: e.message });
         }
         break;
+
+        case 'search':
+          if (fuse === null) {
+            sendResponse({ status: 'ok', message: '인덱싱중입니다' });
+          } else {
+            let searchResult = fuse.search(data.join(' '));
+            const conIds: number[] = [];
+            searchResult.forEach((dict) => {
+              conIds.push(dict.item.conId);
+            });
+            sendResponse({ status: 'ok', data: conIds });
+          }
+          break;
+
+        case 'indexUpdate':
+          try{
+            await updateIndex();
+            await indexing();
+            sendResponse({ status: 'ok' });
+          } catch (error) {
+            console.error('background indexUpdate:', error);
+            sendResponse({ status: 'error', message: error.message });
+          }
+          
+          break;
     }
   })();
   return true;

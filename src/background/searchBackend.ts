@@ -2,43 +2,10 @@ import db, { IEmoticon } from '../database';
 import Fuse from 'fuse.js';
 
 // 인덱스데이터 유지를 위해 백그라운드에서 실행
-let fuse: Fuse<any> | null = null;
-indexing().then((f) => (fuse = f));
+export let fuse: Fuse<any> | null = null;
+indexing();
 
-// 백그라운드 onMessage 리스너
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  const data: any = msg.data;
-  (async () => {
-    switch (msg.action) {
-      case 'search':
-        if (fuse === null) {
-          sendResponse({ status: 'ok', message: '인덱싱중입니다' });
-        } else {
-          let searchResult = fuse.search(data.join(' '));
-          const conIds: number[] = [];
-          searchResult.forEach((dict) => {
-            conIds.push(dict.item.conId);
-          });
-          sendResponse({ status: 'ok', data: conIds });
-        }
-        break;
-      case 'indexUpdate':
-        try{
-          await updateIndex();
-          fuse = await indexing();
-          sendResponse({ status: 'ok' });
-        } catch (error) {
-          console.error('background indexUpdate:', error);
-          sendResponse({ status: 'error', message: error.message });
-        }
-        
-        break;
-    }
-  })();
-  return true;
-});
-
-async function updateIndex() {
+export async function updateIndex() {
   let index = { id:1, data: {} };
   const fuseOption = {
     keys: ['tags', 'chosung', 'packageTags'],
@@ -67,11 +34,11 @@ async function updateIndex() {
   });
   index.data = Fuse.createIndex(fuseOption.keys, emoticonMapped).toJSON();
   await db.search_index.put(index, 1);
-  return index;
+  return index.data;
 }
 
 // 데이터 유지를 위해 백그라운에서 진행
-async function indexing() {
+export async function indexing() {
   const emoticons = await db.emoticon.toArray();
   const fuseOption = {
     keys: ['tags', 'chosung', 'packageTags'],
@@ -83,5 +50,5 @@ async function indexing() {
   if (!savedIndex.data) savedIndex.data = await updateIndex();
   let index = Fuse.parseIndex(savedIndex.data);
   
-  return new Fuse(emoticons, fuseOption, index);
+  fuse = new Fuse(emoticons, fuseOption, index);
 }
