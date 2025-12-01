@@ -2,6 +2,9 @@
 
 import '../css/conMod.css';
 
+const arcacons = (await chrome.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
+const packageId = new URL(window.location.href).pathname.replace('/e/', '');
+
 // 테그 전송
 function createTagFromElement() {
   const wrapper = document.querySelector('div.emoticons-wrapper');
@@ -95,7 +98,6 @@ function createTagFromElement() {
 
   // return tagApplyBtn;
 }
-createTagFromElement();
 
 // 이미지데이터 수집 버튼
 function createCollectElement() {
@@ -142,7 +144,6 @@ function createCollectElement() {
 
   // return collectDataBtn;
 }
-createCollectElement();
 
 // 콘 공통 태그
 function createHeadTagElement() {
@@ -168,7 +169,6 @@ function createHeadTagElement() {
 
   // return headerForm;
 }
-createHeadTagElement();
 
 function createTagInput(dataId, tag) {
   const inputEl = document.createElement('input');
@@ -218,81 +218,79 @@ function getChosung(str) {
   return result;
 }
 
-const packageId = new URL(window.location.href).pathname.replace('/e/', '');
 
-// 태그 추가하기
-function addTagData(conElement, tags) {}
+// 목록에 있는 패키지일때
+if(arcacons.includes(Number(packageId))){
+  createTagFromElement();
+  createCollectElement();
+  createHeadTagElement();
 
-// 태그 가져오기
-// 여기선 데이터만 관여하고, 엘리먼트 변경은 따로하자.
-chrome.runtime
-  .sendMessage({
-    action: 'getTags',
-    data: Number(packageId),
-  })
-  .then((response) => {
-    const tags = response.data[packageId] || [];
-    const headTags = response.head.tags || [];
+  // 태그 가져오기
+  // 여기선 데이터만 관여하고, 엘리먼트 변경은 따로하자.
+  chrome.runtime
+    .sendMessage({
+      action: 'getTags',
+      data: Number(packageId),
+    })
+    .then((response) => {
+      const tags = response.data[packageId] || [];
+      const headTags = response.head.tags || [];
 
-    // Object.keys(response.data[packageId]).forEach(key => {
-    //   addTagData(tags[key], tag.dataId);
-    // });
+      const emoticons = document.querySelectorAll('div.emoticons-wrapper *');
+      const wrapper = document.querySelector('div.emoticons-wrapper');
+      emoticons.forEach((emoticon) => {
+        const conWarpper = document.createElement('div');
+        conWarpper.setAttribute('class', 'conWarpper');
 
-    const emoticons = document.querySelectorAll('div.emoticons-wrapper *');
-    const wrapper = document.querySelector('div.emoticons-wrapper');
-    emoticons.forEach((emoticon) => {
-      // addTagData(emoticon, tags[emoticon.getAttribute('data-id')]);
-      const conWarpper = document.createElement('div');
-      conWarpper.setAttribute('class', 'conWarpper');
+        const tagWrapper = document.createElement('div');
+        tagWrapper.classList = 'tagWrapper';
 
-      const tagWrapper = document.createElement('div');
-      tagWrapper.classList = 'tagWrapper';
-
-      const dataId = emoticon.getAttribute('data-id');
-      if (tags[dataId]) {
-        for (const tag of tags[dataId]) {
-          const conTag = document.createElement('input');
-          conTag.className = 'testi';
-          conTag.value = tag;
-          conTag.name = dataId;
-          tagWrapper.appendChild(conTag);
+        const dataId = emoticon.getAttribute('data-id');
+        if (tags[dataId]) {
+          for (const tag of tags[dataId]) {
+            const conTag = document.createElement('input');
+            conTag.className = 'testi';
+            conTag.value = tag;
+            conTag.name = dataId;
+            tagWrapper.appendChild(conTag);
+          }
         }
-      }
 
-      const addButton = document.createElement('button');
-      addButton.setAttribute('type', 'button');
-      addButton.classList = 'add-tag';
-      addButton.textContent = '+';
+        const addButton = document.createElement('button');
+        addButton.setAttribute('type', 'button');
+        addButton.classList = 'add-tag';
+        addButton.textContent = '+';
 
-      conWarpper.appendChild(emoticon);
-      conWarpper.appendChild(tagWrapper);
-      conWarpper.appendChild(addButton);
-      wrapper.appendChild(conWarpper);
+        conWarpper.appendChild(emoticon);
+        conWarpper.appendChild(tagWrapper);
+        conWarpper.appendChild(addButton);
+        wrapper.appendChild(conWarpper);
+      });
+
+      const headerForm = document.getElementById('headID');
+      headTags.forEach((tag) => {
+        const headTagInput = document.createElement('input');
+        headTagInput.name = 'head';
+        headTagInput.value = tag;
+
+        headerForm.append(headTagInput);
+      });
     });
 
-    const headerForm = document.getElementById('headID');
-    headTags.forEach((tag) => {
-      const headTagInput = document.createElement('input');
-      headTagInput.name = 'head';
-      headTagInput.value = tag;
+  document
+    .querySelector('div.emoticons-wrapper')
+    .addEventListener('click', (event) => {
+      const btn = event.target.closest('.add-tag');
+      if (!btn) return;
 
-      headerForm.append(headTagInput);
+      const conWrapper = btn.closest('.conWarpper');
+      if (!conWrapper) return;
+
+      const dataId = conWrapper
+        .querySelector('.emoticon')
+        .getAttribute('data-id');
+
+      const tagInputEl = createTagInput(dataId, null);
+      conWrapper.querySelector('div.tagWrapper').append(tagInputEl);
     });
-  });
-
-document
-  .querySelector('div.emoticons-wrapper')
-  .addEventListener('click', (event) => {
-    const btn = event.target.closest('.add-tag');
-    if (!btn) return;
-
-    const conWrapper = btn.closest('.conWarpper');
-    if (!conWrapper) return;
-
-    const dataId = conWrapper
-      .querySelector('.emoticon')
-      .getAttribute('data-id');
-
-    const tagInputEl = createTagInput(dataId, null);
-    conWrapper.querySelector('div.tagWrapper').append(tagInputEl);
-  });
+}
