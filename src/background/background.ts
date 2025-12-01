@@ -25,12 +25,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         try {
           await db.emoticon.bulkPut(updates);
           await db.package_info.put({packageId:packageId, tags: msg.head }, packageId);
+          await chrome.runtime.sendMessage({ action: 'indexUpdate' });
           sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
         } catch (error) {
           console.error('background updateTags:', error);
           sendResponse({ status: 'error', message: error.message });
         }
-        chrome.runtime.sendMessage({action: 'indexUpdate' });
         break;
 
       // 패키지 조회
