@@ -46,8 +46,8 @@ export async function indexing() {
     useExtendedSearch: true,
   };
   // TODO 초기값 설정하는 코드 작성
-  let savedIndex = await db.search_index.get(1);
-  if (!savedIndex.data) savedIndex.data = await updateIndex();
+  let savedIndex = (await db.search_index.get(1)) || {};
+  if (!savedIndex || !savedIndex.data) savedIndex.data = await updateIndex();
   let index = Fuse.parseIndex(savedIndex.data);
   
   fuse = new Fuse(emoticons, fuseOption, index);

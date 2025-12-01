@@ -74,7 +74,7 @@ isShow.addEventListener('submit', async (e) => {
   });
   chrome.storage.local.set({ arcacon_package: pOption });
   
-  chrome.runtime.onMessage({ action: 'indexUpdate' });
+  chrome.runtime.sendMessage({ action: 'indexUpdate' });
   } catch (e) {
     console.error(e);
   }

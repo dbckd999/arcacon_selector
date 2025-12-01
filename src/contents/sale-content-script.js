@@ -37,23 +37,23 @@ function createTagFromElement() {
     // FormData를 순회하며 JSON 객체를 만듭니다.
     for (const [key, value] of formData.entries()) {
       // key 형식: emoticon[dataId][] 또는 dataId.[]
-      // const match = key.match(/\[(\d+)\]/);
-      // const dataID = match ? match[1] : key.replace('.[]', '');
+      const match = key.match(/\[(\d+)\]/);
+      const dataID = match ? match[1] : key.replace('.[]', '');
 
       const _value = value.trim();
       if (_value === '') continue;
 
-      if (!(key in jsonData)) {
-        jsonData[key] = {};
-        jsonData[key]['tags'] = new Set();
-        jsonData[key]['chosung'] = new Set();
+      if (!(dataID in jsonData)) {
+        jsonData[dataID] = {};
+        jsonData[dataID]['tags'] = new Set();
+        jsonData[dataID]['chosung'] = new Set();
       }
 
       // 초성 데이터로 변환 가능하면 추가로 저장
-      jsonData[key]['tags'].add(_value);
+      jsonData[dataID]['tags'].add(_value);
       const chungValue = getChosung(_value);
       if (chungValue !== _value) {
-        jsonData[key]['chosung'].add(chungValue);
+        jsonData[dataID]['chosung'].add(chungValue);
       }
     }
 
