@@ -9,28 +9,29 @@ chrome.sidePanel
 // 백그라운드 onMessage 리스너
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const data: any = msg.data;
-  const packageId:number = msg.packageId;
+  const packageId: number = msg.packageId;
   (async () => {
     switch (msg.action) {
       case 'updateTags':
-        // const pid = data[0].packageId;
-        const updates = data.map((item: IEmoticon) => ({
-          key: item.conId,
-          changes: {
-            tags: item.tags,
-            chosung: item.chosung,
-          },
-        }));
-        console.log(updates);
+        const updateIDs = Object.keys(data).map(Number);
+        const updateCons = await db.emoticon.bulkGet(updateIDs);
+        if(!updateCons[0]){
+          sendResponse({ status: 'ok', message: '아카콘을 먼저 다운받아 주세요.' });
+          break;
+        }
+        const newTags = updateCons.map(item => Object.assign(item, data[item.conId]));
+
+        const packageHaad = await db.package_info.get(packageId) || {};
+        const newHeadTags = Object.assign(packageHaad, { packageId: packageId, tags: msg.head });
         try {
-          await db.emoticon.bulkPut(updates);
-          await db.package_info.put({packageId:packageId, tags: msg.head }, packageId);
+          await db.emoticon.bulkPut(newTags);
+          await db.package_info.put(newHeadTags);
         } catch (error) {
           console.error('background updateTags:', error);
           sendResponse({ status: 'error', message: error.message });
         }
         // 단방향 메시지라 같은 리스너엔 불가
-        try{
+        try {
           await updateIndex();
           await indexing();
           sendResponse({ status: 'ok', message: '태그를 저장했습니다.' });
@@ -91,11 +92,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ status: 'ok', data: result, head: headerTags || [] });
         break;
 
-      case 'resourceCollect': {
-        const { data: els } = msg;
-        const downloadQueue = els.map(async (el: any) => ({
+      case 'resourceCollect':
+        const downloadQueue = data.map(async (el: any) => ({
           conId: el.conId,
-          packageId: el.packageId,
+          packageId: packageId,
           conOrder: el.conOrder,
           image: await downloadResource(el.image),
           video: await downloadResource(el.video),
@@ -108,7 +108,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ status: 'error', message: e.message });
         }
         break;
-      }
 
       case 'saveHeadArcacons':
         try {
@@ -128,30 +127,29 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         break;
 
-        case 'search':
-          if (fuse === null) {
-            sendResponse({ status: 'ok', message: '인덱싱중입니다' });
-          } else {
-            let searchResult = fuse.search(data.join(' '));
-            const conIds: number[] = [];
-            searchResult.forEach((dict) => {
-              conIds.push(dict.item.conId);
-            });
-            sendResponse({ status: 'ok', data: conIds });
-          }
-          break;
+      case 'search':
+        if (fuse === null) {
+          sendResponse({ status: 'ok', message: '인덱싱중입니다' });
+        } else {
+          let searchResult = fuse.search(data.join(' '));
+          const conIds: number[] = [];
+          searchResult.forEach((dict) => {
+            conIds.push(dict.item.conId);
+          });
+          sendResponse({ status: 'ok', data: conIds });
+        }
+        break;
 
-        case 'indexUpdate':
-          try{
-            await updateIndex();
-            await indexing();
-            sendResponse({ status: 'ok' });
-          } catch (error) {
-            console.error('background indexUpdate:', error);
-            sendResponse({ status: 'error', message: error.message });
-          }
-          
-          break;
+      case 'indexUpdate':
+        try {
+          await updateIndex();
+          await indexing();
+          sendResponse({ status: 'ok' });
+        } catch (error) {
+          console.error('background indexUpdate:', error);
+          sendResponse({ status: 'error', message: error.message });
+        }
+        break;
     }
   })();
   return true;
@@ -167,17 +165,17 @@ chrome.runtime.onInstalled.addListener(() => {
     enabled: false,
   });
   chrome.contextMenus.create({
-    id: 'arcaconSetting', // 메뉴 항목의 고유 ID
-    title: '아카콘 설정', // 메뉴에 표시될 텍스트
-    contexts: ['action'], // 'action'은 확장 프로그램 아이콘의 우클릭 메뉴를 의미합니다.
+    id: 'arcaconSetting',
+    title: '아카콘 설정',
+    contexts: ['action'],
     enabled: false,
   });
 
   interface Setting {
     isSleep?: boolean;
-    sleepTime?: string;
-    conSize?: string;
-    sleepOpacity?: string;
+    sleepTime?: number;
+    conSize?: number;
+    sleepOpacity?: number;
     syncSearch?: boolean;
   }
   // 설정 기본값
@@ -185,9 +183,9 @@ chrome.runtime.onInstalled.addListener(() => {
     let setting: Setting = res.arcacon_setting || {};
 
     if (!('isSleep' in setting)) setting.isSleep = true;
-    if (!('sleepTime' in setting)) setting.sleepTime = '3000';
-    if (!('conSize' in setting)) setting.conSize = '50';
-    if (!('sleepOpacity' in setting)) setting.sleepOpacity = '50';
+    if (!('sleepTime' in setting)) setting.sleepTime = 3000;
+    if (!('conSize' in setting)) setting.conSize = 50; // px
+    if (!('sleepOpacity' in setting)) setting.sleepOpacity = 0.9;
     if (!('syncSearch' in setting)) setting.syncSearch = true;
 
     chrome.storage.local.set({ arcacon_setting: setting });

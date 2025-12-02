@@ -1,40 +1,63 @@
-import db, { IEmoticon } from '../database';
+import db from '../database';
 import Fuse from 'fuse.js';
+
+interface searchEntry{
+  conId: number;
+  tags: string[];
+  chosung: string[];
+  packageTags: string[];
+}
 
 // 인덱스데이터 유지를 위해 백그라운드에서 실행
 export let fuse: Fuse<any> | null = null;
 indexing();
 
 export async function updateIndex() {
-  let index = { id:1, data: {} };
   const fuseOption = {
     keys: ['tags', 'chosung', 'packageTags'],
     threshold: 0,
     useExtendedSearch: true,
   };
-  const emoticons = await db.emoticon.toArray();
   const packagesData = await db.package_info.toArray();
   const heads: { [key: number]: string[] } = {};
   for (const head of packagesData) {
     heads[head.packageId] = head.tags;
   }
-
+  
   const appSetting = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting ?? [];
   const packageList = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
-  const emoticonMapped: IEmoticon[] = emoticons.map((emoticon) => {
+  
+  const emoticons = await db.emoticon.toArray();
+  const indexMap: searchEntry[] = [];
+  emoticons.forEach((emoticon) => {
     const pID = emoticon.packageId;
     if (appSetting.syncSearch && !packageList[pID].visible) return;
     if (!heads[pID] && !emoticon.tags) return;
-    return {
+
+    indexMap.push({
       conId: emoticon.conId,
       tags: emoticon.tags,
       chosung: emoticon.chosung,
       packageTags: heads[emoticon.packageId],
-    };
+    });
+
   });
-  index.data = Fuse.createIndex(fuseOption.keys, emoticonMapped).toJSON();
-  await db.search_index.put(index, 1);
-  return index.data;
+  // const emoticonMapped: IEmoticon[] = emoticons.map((emoticon) => {
+  //   const pID = emoticon.packageId;
+  //   if (appSetting.syncSearch && !packageList[pID].visible) return;
+  //   if (!heads[pID] && !emoticon.tags) return;
+  //   return {
+  //     conId: emoticon.conId,
+  //     tags: emoticon.tags,
+  //     chosung: emoticon.chosung,
+  //     packageTags: heads[emoticon.packageId],
+  //   };
+  // });
+  
+  // let index = { id:1, data: {} };
+  const index = Fuse.createIndex(fuseOption.keys, indexMap).toJSON();
+  await db.search_index.put({ id: 1, data: index });
+  return index;
 }
 
 // 데이터 유지를 위해 백그라운에서 진행

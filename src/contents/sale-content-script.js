@@ -3,7 +3,7 @@
 import '../css/conMod.css';
 
 const arcacons = (await chrome.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
-const packageId = new URL(window.location.href).pathname.replace('/e/', '');
+const packageId = Number(new URL(window.location.href).pathname.replace('/e/', ''));
 
 // 테그 전송
 function createTagFromElement() {
@@ -57,22 +57,19 @@ function createTagFromElement() {
       }
     }
 
-    const url = new URL(window.location.href);
-    const packageId = Number(url.pathname.replace('/e/', ''));
-    const mapped = [];
+    const mapped = {};
     console.log(jsonData);
     for (const key of Object.keys(jsonData)) {
-      mapped.push({
-        packageId: packageId,
-        conId: Number(key),
+      mapped[Number(key)] = 
+      {
+        packageId,
         tags: Array.from(jsonData[key]['tags']),
         chosung: Array.from(jsonData[key]['chosung']),
-      });
+      };
     }
 
     // 헤더 아이콘 태그 가져오기
     const headFormData = new FormData(document.getElementById('headID'));
-    // FormData를 순회하며 JSON 객체를 만듭니다.
     const headData = [];
     for (const [key, value] of headFormData.entries()) {
       if (value.trim() === '') continue;
