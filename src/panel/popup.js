@@ -81,7 +81,7 @@ async function showConPackage(packageId, pakcageName) {
 async function conListup() {
   // 아카콘 대표 목록
   const headerGround = document.getElementById('conHeaders');
-  headerGround.innerHTML = '';
+  // headerGround.innerHTML = '';
   const heads = await db.base_emoticon.toArray();
   const objHeads = {};
   heads.forEach((head) => {

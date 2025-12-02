@@ -115,7 +115,13 @@
     <sl-divider></sl-divider>
 
     <!-- 콘 대표 목록. 누르면 해당 콘으로 이동 -->
-    <div id="conHeaders" class="images-container"></div>
+    <div id="conHeaders" class="images-container">
+      <a href="#searchSpan">
+        <sl-avatar>
+          <sl-icon slot="icon" name="search"></sl-icon>
+        </sl-avatar>
+      </a>
+    </div>
   </nav>
 
   <!-- popup.js에서 아카콘 스타일 정의 -->
@@ -123,7 +129,7 @@
 
   <!-- 검색결과 -->
   <div id="searchResult">
-    <span>검색결과</span>
+    <span id="searchSpan">검색결과</span>
     <br />
     <div class="images-container"></div>
   </div>
