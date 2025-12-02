@@ -244,7 +244,7 @@ async function main() {
     const setting = res.arcacon_setting;
 
     // 절전화면 활성
-    if (setting.isSleep == 'true') {
+    if (setting.isSleep) {
       //보호화면
       const shild = document.getElementById('shild');
       const root = document.querySelector('html');
