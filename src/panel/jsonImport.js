@@ -76,7 +76,7 @@ upy.on('file-added', async (file) => {
 
 upy.on('upload', async (uploadID, files) => {
   let count = 0;
-  files.forEach(async (file) => {
+  for(const file of files){
     const text = await file.data.text();
     const json = JSON.parse(text);
 
@@ -110,20 +110,19 @@ upy.on('upload', async (uploadID, files) => {
     });
 
     // indexedDB
+    // 다운받은 데이터 존재 확인. 없으면 경고.
     if(db.package_info.get(Number(packageID))){
-
-      // 다운받은 데이터 존재 확인. 없으면 경고.
       // 2. 패키지 공통태그
       await db.package_info.update(Number(packageID), { tags: headerTag });
       // 3. 단일 아카콘 태그
       await db.emoticon.bulkUpdate(modEmoticons);
-
       console.log(`${atLocal.packageName}(${packageID}) 태그 업데이트 완료`);
       ++count;
     } else {
       notify(`${atLocal.packageName}(${packageID}) 태그 무시됨`, 'danger');
       console.error(e);
     }
-  });
+  };
   notify(`${count}개의 아카콘 데이터를 업데이트했습니다.`);
+  chrome.runtime.sendMessage({ action: 'indexUpdate' });
 });
