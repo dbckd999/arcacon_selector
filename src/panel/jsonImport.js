@@ -8,6 +8,45 @@ import Korean from '@uppy/locales/lib/ko_KR.js';
 import '@uppy/core/css/style.min.css';
 import '@uppy/dashboard/css/style.min.css';
 
+function getChosung(str) {
+  const CHOSUNG_LIST = [
+    'ㄱ',
+    'ㄲ',
+    'ㄴ',
+    'ㄷ',
+    'ㄸ',
+    'ㄹ',
+    'ㅁ',
+    'ㅂ',
+    'ㅃ',
+    'ㅅ',
+    'ㅆ',
+    'ㅇ',
+    'ㅈ',
+    'ㅉ',
+    'ㅊ',
+    'ㅋ',
+    'ㅌ',
+    'ㅍ',
+    'ㅎ',
+  ];
+
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    const charCode = str.charCodeAt(i);
+
+    // 한글 음절(가-힣) 범위 체크
+    if (charCode >= 0xac00 && charCode <= 0xd7a3) {
+      const chosungIndex = Math.floor((charCode - 0xac00) / (21 * 28));
+      result += CHOSUNG_LIST[chosungIndex];
+    } else {
+      // 한글이 아니면 원본 문자 그대로 추가
+      result += str.charAt(i);
+    }
+  }
+  return result;
+}
+
 const upy = new Uppy({
   restrictions: {
     allowedFileTypes: ['.json'],
@@ -36,40 +75,55 @@ upy.on('file-added', async (file) => {
 });
 
 upy.on('upload', async (uploadID, files) => {
+  let count = 0;
   files.forEach(async (file) => {
     const text = await file.data.text();
     const json = JSON.parse(text);
 
-    // 키 존재 확인. 없으면 무시됨
-    const pId = Object.keys(json)[0];
+    const { packageID, headerTag, atLocal, emoticon } = json;
+    //1. 로컬스토리지 업데이트
+    const heads = (await chrome.storage.local.get('arcacon_package')).arcacon_package || {};
+    heads[packageID] = {
+      packageName: atLocal.packageName,
+      title: atLocal.title,
+      expires: atLocal.expires,
+      visible: true,
+      available: true,
+    };
+    chrome.storage.local.set({arcacon_package: heads});
 
-    if (
-      (await db.emoticon.where('packageId').equals(Number(pId)).first()) > 0
-    ) {
-      const emoticons = json[pId];
-      const updates = [];
-      Object.keys(emoticons).forEach((conId) => {
-        updates.push({
-          key: Number(conId),
-          changes: {
-            tags: emoticons[conId],
-          },
-        });
+    // bulkUpdate 데이터 생성
+    const modEmoticons = emoticon.map((e) => {
+      // 초성데이터 추가
+      const chosung = [];
+      e.tags.forEach((tag) => {
+        const nowChosung = getChosung(tag);
+        if(tag !== nowChosung) chosung.push(nowChosung);
       });
-
-      if (updates.length > 0) {
-        db.emoticon
-          .bulkUpdate(updates)
-          .then((count) => {
-            notify(`${count}개의 아카콘 데이터를 업데이트했습니다.`);
-          })
-          .catch((e) => {
-            notify(e, 'danger');
-            console.error(e);
-          });
-      } else {
-        notify('업데이트할 데이터가 없습니다.');
+      return {
+        key: e.conId,
+        changes: {
+          tags: e.tags,
+          chosung: chosung,
+        }
       }
+    });
+
+    // indexedDB
+    if(db.package_info.get(Number(packageID))){
+
+      // 다운받은 데이터 존재 확인. 없으면 경고.
+      // 2. 패키지 공통태그
+      await db.package_info.update(Number(packageID), { tags: headerTag });
+      // 3. 단일 아카콘 태그
+      await db.emoticon.bulkUpdate(modEmoticons);
+
+      console.log(`${atLocal.packageName}(${packageID}) 태그 업데이트 완료`);
+      ++count;
+    } else {
+      notify(`${atLocal.packageName}(${packageID}) 태그 무시됨`, 'danger');
+      console.error(e);
     }
   });
+  notify(`${count}개의 아카콘 데이터를 업데이트했습니다.`);
 });

@@ -3,7 +3,7 @@ import { notify } from '../util/notify';
 import * as JSZip from 'jszip';
 
 import * as state from './state';
-
+import db from '../database';
 
 // 콤보콘 활성시 게시 목록에 추가
 function addCombocon(groupId, conId, thumbnail) {
@@ -17,29 +17,49 @@ function addCombocon(groupId, conId, thumbnail) {
 
 // 패키지 목록 json파일화, zip파일로 다운로드.
 async function downloadTags(packageIds) {
+  packageIds = packageIds.map(Number);
+  const heads = (await chrome.storage.local.get('arcacon_package')).arcacon_package || {};
+
+  const promises = packageIds.map(async (pID) => {
+    const headInfo = await db.package_info.get(pID);
+    const emoticon = await db.emoticon.where('packageId').equals(pID).toArray();
+    return [
+      pID,
+      {
+        packageID: pID,
+        headerTag: headInfo.tags || [],
+        atLocal: {
+          packageName: heads[pID].packageName,
+          title: heads[pID].title,
+          expires: heads[pID].expires,
+        },
+        emoticon: emoticon
+          .map(({ conId, tags }) => ({ conId, tags }))
+          .filter((e) => e.tags),
+      },
+    ];
+  });
+
+  // pID: value 형태의 객체로 다시 복원
+  const done = Object.fromEntries(await Promise.all(promises));
+
   const z = JSZip();
   const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  for (const packageId of packageIds) {
+    const value = done[packageId];
+    if (!value) continue;
 
-  const loading = packageIds.map(async (packageId) => {
-    const { status, data: tags } = await chrome.runtime.sendMessage({
-      action: 'getTags',
-      data: Number(packageId),
-    });
-    // JSZip은 문자열을 직접 받을 수 있으므로 Blob을 생성할 필요가 없습니다.
-    const content = JSON.stringify(tags, null, 2);
-    return { packageId, content };
-  });
-  const done = await Promise.all(loading);
+    const content = JSON.stringify(value, null, 2);
+    z.file(`${packageId}-${yymmdd}.json`, content);
+  }
 
-  done.forEach((file) => {
-    z.file(`${file.packageId}-${yymmdd}.json`, file.content);
-  });
-  const file = await z.generateAsync({ type: 'blob' });
+  const file = await z.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(file);
+
   try {
     chrome.downloads.download({
-      url: url,
-      filename: `arcacons-tags-${yymmdd}.zip`, // 여러 json을 압축했으므로 .zip 확장자가 더 적절합니다.
+      url,
+      filename: `arcacons-tags-${yymmdd}.zip`,
       saveAs: true,
     });
   } catch (e) {
