@@ -146,7 +146,9 @@ comboCon.addEventListener('sl-change', (e) => {
     repleyComboBtn.removeAttribute('disabled');
   } else {
     repleyComboBtn.setAttribute('disabled', true);
-    conPackage = [];
+    state.conPackage.pop();
+    state.conPackage.pop();
+    state.conPackage.pop();
     document.getElementById('comboConWrap').innerHTML = '';
   }
 });
@@ -154,9 +156,10 @@ comboCon.addEventListener('sl-change', (e) => {
 // 콤보콘 이미지클릭시 삭제
 comboConWrap.addEventListener('click', (e) => {
   const thumbnail = e.target.closest('img');
-  if (thumbnail) {
-    thumbnail.remove();
-  }
+  if (thumbnail) thumbnail.remove();
+  // n번째 계산
+  const idx = Array.from(comboConWrap.children).indexOf(thumbnail);
+  state.conPackage.splice(idx, 1);
 });
 
 // 아카콘 대표목록 가로휠
