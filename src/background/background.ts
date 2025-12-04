@@ -131,8 +131,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (fuse === null) {
           sendResponse({ status: 'ok', message: '인덱싱중입니다' });
         } else {
-          let searchResult = fuse.search(data.join(' '));
           const conIds: number[] = [];
+          let searchResult = fuse.search(data.map((e:string)=>`'${e}`).join(' '));
           searchResult.forEach((dict) => {
             conIds.push(dict.item.conId);
           });
