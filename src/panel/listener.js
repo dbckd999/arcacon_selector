@@ -308,3 +308,12 @@ document.getElementById('acvenceTag').addEventListener('submit', async e=>{
 const drawer = document.querySelector('.drawer');
 const openButton = document.getElementById('searchHelp');
 openButton.addEventListener('click', () => (drawer.open = !drawer.open));
+
+const links = document.getElementsByClassName("newtab");
+for (let el of links) {
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    const url = el.getAttribute("href");
+    chrome.tabs.create({ url });
+  });
+}
