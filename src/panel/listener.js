@@ -76,7 +76,8 @@ const comboCon = document.getElementById('comboCon');
 const comboConWrap = document.getElementById('comboConWrap');
 const conHeaders = document.getElementById('conHeaders');
 const recordCombocon = document.getElementById('recordCombocon');
-
+const advencedSearchBtn = document.getElementById('advSearch');
+const nomalSearch = document.getElementById('nomalSearch');
 
 // 아카콘 가리기/보이기 설정
 isShow.addEventListener('submit', async (e) => {
@@ -266,3 +267,44 @@ conWrap.addEventListener('click', async (e) => {
     }
   }
 });
+
+// 고급검색으로 전환
+advencedSearchBtn.addEventListener('click', () => {
+  document.getElementById('tagInput').style.display = 'none';
+  document.getElementById('acvenceTag').style.display = 'block';
+});
+
+// 일반검색으로 전환
+nomalSearch.addEventListener('click', () => {
+  document.getElementById('acvenceTag').style.display = 'none';
+  document.getElementById('tagInput').style.display = 'block';
+});
+
+// 고급 검색결과 제출
+document.getElementById('acvenceTag').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const searchResultEl = document.querySelector('div#searchResult div.images-container');
+  searchResultEl.innerHTML = '';
+
+  const data = serialize(e.target);
+  if(data.tag){
+    const { status, data:conIDs } = 
+      await chrome.runtime.sendMessage({ action: 'advencedSearch', data: data.tag});
+    if(status === 'ok'){
+      db.emoticon.bulkGet(conIDs).then((cons) => {
+        cons.forEach((con) => {
+          const thumbnail = document.createElement('img');
+          thumbnail.setAttribute('loading', 'lazy');
+          thumbnail.setAttribute('class', 'thumbnail');
+          thumbnail.src = URL.createObjectURL(con.image);
+          thumbnail.setAttribute('data-id', con.conId.toString());
+          searchResultEl.append(thumbnail);
+        });
+      });
+    }
+  }
+});
+
+const drawer = document.querySelector('.drawer');
+const openButton = document.getElementById('searchHelp');
+openButton.addEventListener('click', () => (drawer.open = !drawer.open));

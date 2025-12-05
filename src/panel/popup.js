@@ -106,7 +106,7 @@ async function conListup() {
 
   // 아카콘 상세 이미지들 (스크롤 대상 컨테이너)
   const ground = document.getElementById('conWrap');
-  ground.innerHTML = '';
+  // ground.innerHTML = '';
   if (!state.customSort || state.customSort.length === 0) {
     ground.innerHTML = `
     아카콘 목록이 비어있습니다.<br/>

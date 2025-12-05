@@ -11,7 +11,7 @@ if (!searchResult) {
   throw new Error('searchResult element not found');
 }
 
-const searchTest = new ArcaconTagSearch(searchResult);
+const searchManage = new ArcaconTagSearch(searchResult);
 searchResult.addEventListener('onSearch', async (event: Event) => {
   const searchResultEl = document.querySelector('#searchResult .images-container');
   const e = event as CustomEvent<number[]>;
@@ -37,7 +37,7 @@ const tagGroup = document.querySelector('.tags-removable');
 tagGroup.addEventListener('sl-remove', (event) => {
   const tagClearElement = event.target as HTMLElement;
   const tagData = tagClearElement.getAttribute('data-tag');
-  searchTest.remove(tagData);
+  searchManage.remove(tagData);
   tagClearElement.style.opacity = '0';
 
   tagClearElement.remove();
@@ -49,7 +49,7 @@ document.getElementById('removeAllTag').addEventListener('click', (e) => {
   tagEls.forEach((tag) => {
     tag.remove();
   });
-  searchTest.clear();
+  searchManage.clear();
 });
 
 // 삭제 가능한 태그객체 생성
@@ -60,21 +60,19 @@ tagInputForm.addEventListener('submit', (e: SubmitEvent) => {
   e.preventDefault();
 
   const form = e.target as HTMLFormElement;
-  const formData: { [key: string]: string } = serialize(form) as {
-    tag: string;
-  };
+  const formData = serialize(form) as Record<string, string>;
 
-  if (formData.tag.trim() === '') return; // 이제 formData.tag는 string으로 안전하게 접근 가능
+  if (formData.tag.trim() === '') return;
 
   const tagInputValues = formData.tag.split(' ').filter((t) => t.length > 0); // tagInput 대신 tagInputValues로 변수명 변경 및 빈 문자열 필터링
   if (tagInputValues.length === 0) return;
-
+  
   const slInput = form.querySelector<HTMLInputElement>('sl-input');
   if (slInput) slInput.value = '';
-
+  
   // 배열(또는 길이가1인) 순회, 태그 추가
   tagInputValues.forEach((t) => {
-    searchTest.add(t);
+    searchManage.add(t);
     const tagEl = document.createElement('sl-tag');
     tagEl.setAttribute('data-tag', t);
     tagEl.setAttribute('size', 'small');

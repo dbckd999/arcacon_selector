@@ -3,9 +3,6 @@ import Fuse from 'fuse.js';
 
 interface searchEntry{
   conId: number;
-  // tags: string[];
-  // chosung: string[];
-  // packageTags: string[];
   flat: string;
 }
 
@@ -46,14 +43,11 @@ export async function updateIndex() {
 
     indexMap.push({
       conId: emoticon.conId,
-    //   tags: emoticon.tags,
-    //   chosung: emoticon.chosung,
-    //   packageTags: heads[pID],
       flat: buildFlatSearchText(emoticon, ['tags', 'chosung'], heads[pID]),
     });
   });
   const index = Fuse.createIndex(['flat'], indexMap).toJSON();
-  // await db.search_index.put({ id: 1, data: index });
+  await db.search_index.put({ id: 1, data: index });
   return index;
 }
 
@@ -62,12 +56,10 @@ export async function indexing() {
   const emoticons = await db.emoticon.toArray();
   const fuseOption = {
     keys: ['flat'],
-    threshold: 0,
     useExtendedSearch: true,
   };
   let savedIndex = (await db.search_index.get(1)) || {};
-  // if (!savedIndex || !savedIndex.data) 
-  savedIndex.data = await updateIndex();
+  if (!savedIndex || !savedIndex.data) savedIndex.data = await updateIndex();
   let index = Fuse.parseIndex(savedIndex.data);
   
   fuse = new Fuse(emoticons, fuseOption, index);

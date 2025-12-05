@@ -140,6 +140,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         break;
 
+      case 'advencedSearch':
+        if (fuse === null) {
+          sendResponse({ status: 'ok', message: '인덱싱중입니다' });
+        } else {
+          const conIds: number[] = [];
+          let searchResult = fuse.search(data);
+          searchResult.forEach((dict) => {
+            conIds.push(dict.item.conId);
+          });
+          sendResponse({ status: 'ok', data: conIds });
+        }
+        break;
+
       case 'indexUpdate':
         try {
           await updateIndex();
