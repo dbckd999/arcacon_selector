@@ -1,5 +1,7 @@
 'use strict';
 
+import './emergency'
+
 // 전역변수는 별도로 관리
 import * as state from './state'
 import '../css/popup.css';
