@@ -22,7 +22,6 @@ export interface IPackageInfo {
   packageId: number;
   packageName?: string;
   title?: string;
-  expires?: number;
   tags?: string[]; // 패키지 자체에 대한 검색용 태그
 }
 

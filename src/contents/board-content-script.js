@@ -161,11 +161,9 @@ async function saveArcacons() {
     const res = {};
     const originKeys = Object.keys(origin);
     gc.map((el) => {
-      const subEl = el.querySelector('div');
       res[Number(el.getAttribute('data-package-id'))] = {
         packageName: el.getAttribute('data-package-name'),
         title: el.getAttribute('title'),
-        expires: Number(subEl.getAttribute('style').match(/expires=(\d+)/)[1]),
         // visible은 기존값을 가져온다.
         visible: (Number(el.getAttribute('data-package-id')) in originKeys) ? origin[Number(el.getAttribute('data-package-id'))].visible : true,
         available: true

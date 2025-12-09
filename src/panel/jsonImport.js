@@ -86,7 +86,6 @@ upy.on('upload', async (uploadID, files) => {
     heads[packageID] = {
       packageName: atLocal.packageName,
       title: atLocal.title,
-      expires: atLocal.expires,
       visible: true,
       available: true,
     };

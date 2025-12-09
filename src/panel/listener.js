@@ -31,7 +31,6 @@ async function downloadTags(packageIds) {
         atLocal: {
           packageName: heads[pID].packageName,
           title: heads[pID].title,
-          expires: heads[pID].expires,
         },
         emoticon: emoticon
           .map(({ conId, tags }) => ({ conId, tags }))
