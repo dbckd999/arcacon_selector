@@ -93,6 +93,28 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
 
       case 'resourceCollect':
+        // 헤드 이미지, 패키지 이름
+        // 패키지, 헤드 데이터를 갱신
+        const { head } = msg;
+        chrome.storage.local.get('arcacon_package')
+        .then(loc => {
+          loc = loc.arcacon_package || {};
+          const target = Object.assign(loc[head.packageId], 
+            {
+              available: true,
+              title:head.title, 
+              packageName:head.title,
+              visible: true,
+            }
+          );
+          loc[head.packageId] = target;
+          chrome.storage.local.set({ arcacon_package: loc });
+        });
+        db.base_emoticon.put({
+          packageId: head.packageId,
+          src: await downloadResource(head.url),
+        });
+        
         const downloadQueue = data.map(async (el: any) => ({
           conId: el.conId,
           packageId: packageId,

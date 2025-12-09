@@ -47,16 +47,13 @@ orderApplyBtn.addEventListener('click', () => {
         origin[enable].available = true;
       } else {
         origin[enable] = {
-          packageName: '데이터 없음',
+          packageName: '데이터 없음('+String(enable)+')',
           title: '데이터 없음',
           visible: true,
           available: true,
         };
       }
     });
-
-    // TODO fix 기존에 없었던 데이터를 입력하는 경우
-
 
     chrome.storage.local.set({'arcacon_package': origin });
   });

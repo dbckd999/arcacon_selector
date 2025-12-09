@@ -6,16 +6,17 @@ export interface IEmoticon {
   conOrder?: number;
   tags?: string[];
   chosung?: string[];
-  // Blob 타입으로 변경하여 데이터베이스에 직접 저장
+  // Blob 타입으로 직접 저장
   image?: Blob;
   video?: Blob;
 }
 
 export interface IHeaderIcon {
   packageId: number;
-  // Blob 타입으로 변경하여 데이터베이스에 직접 저장
-  image?: Blob;
-  video?: Blob;
+  // Blob 타입으로 직접 저장
+  // image?: Blob;
+  // video?: Blob;
+  src?: Blob;
 }
 
 export interface IPackageInfo {

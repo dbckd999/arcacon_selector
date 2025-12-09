@@ -11,7 +11,6 @@ function createTagFromElement() {
   wrapper.className += ' fortags';
   const conForm = document.createElement('form');
   conForm.setAttribute('method', 'post');
-  // conForm.setAttribute('action', 'https://api.dbckd999.xyz/test');
   conForm.setAttribute('action', '#');
   conForm.appendChild(wrapper);
   document.querySelector('div.article-body.emoticon-body').prepend(conForm);
@@ -120,11 +119,20 @@ function createCollectElement() {
         : null,
     }));
 
+    // 헤드 이미지, 패키지 이름
+    // 패키지, 헤드 데이터를 갱신
+    const head = {
+      packageId,
+      title: document.querySelector('meta[name=title]').getAttribute('content'),
+      url: 'https:' + document.querySelector('div.emoticon-header-icon img').getAttribute('src'),
+    }
+
     chrome.runtime
       .sendMessage({
         action: 'resourceCollect',
         data: elements,
         packageId: packageId,
+        head,
       })
       .then((response) => {
         if (response.status === 'ok') {

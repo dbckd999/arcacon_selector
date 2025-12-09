@@ -100,7 +100,15 @@ async function conListup() {
 
     const imgElement = document.createElement('sl-avatar');
     imgElement.setAttribute('data-id', pID);
-    imgElement.setAttribute('image', URL.createObjectURL(objHeads[pID]));
+    try{
+      imgElement.setAttribute('image', URL.createObjectURL(objHeads[pID]));
+    } catch (e) {
+      const empty = document.createElement('sl-icon');
+      empty.setAttribute('slot', 'icon');
+      empty.setAttribute('name', 'image');
+      imgElement.append(empty);
+      console.warn(`데이터가 비어있습니다. https://arca.live/e/${pID}에서 '데이터 수집하기'나 댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`);
+    }
 
     anchor.append(imgElement);
     headerGround.append(anchor);
