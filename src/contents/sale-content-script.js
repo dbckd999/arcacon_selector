@@ -10,7 +10,7 @@ function createTagFromElement() {
   // 입력 양식 설명
   const info = document.createElement('span');
   info.innerHTML = "태그의 최대길이는 20자이며, 각 이모티콘당 5개의 태그를 입력할 수 있습니다. 공백/빈칸인 태그는 무시됩니다.<br>공통 태그를 제외한 이모티콘은 검색을 위해 초성으로 추가로 변환되어 저장됩니다.";
-  document.querySelector('div.emoticon-tags').after(info);
+  document.querySelector('div.article-body.emoticon-body form').before(info);
 
   const wrapper = document.querySelector('div.emoticons-wrapper');
   wrapper.className += ' fortags';
