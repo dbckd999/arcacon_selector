@@ -14,6 +14,8 @@ import '../searchDetail';
 import './jsonImport';
 import './listener'
 
+document.getElementById('version').textContent = chrome.runtime.getManifest().version;
+
 // 특정 패키지 출력
 async function showConPackage(packageId, pakcageName) {
   packageId = Number(packageId);
