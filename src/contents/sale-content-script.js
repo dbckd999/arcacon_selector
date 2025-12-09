@@ -7,6 +7,11 @@ const packageId = Number(new URL(window.location.href).pathname.replace('/e/', '
 
 // 테그 전송
 function createTagFromElement() {
+  // 입력 양식 설명
+  const info = document.createElement('span');
+  info.innerHTML = "태그의 최대길이는 20자이며, 각 이모티콘당 5개의 태그를 입력할 수 있습니다. 공백/빈칸인 태그는 무시됩니다.<br>공통 태그를 제외한 이모티콘은 검색을 위해 초성으로 추가로 변환되어 저장됩니다.";
+  document.querySelector('div.emoticon-tags').after(info);
+
   const wrapper = document.querySelector('div.emoticons-wrapper');
   wrapper.className += ' fortags';
   const conForm = document.createElement('form');
@@ -180,6 +185,7 @@ function createTagInput(dataId, tag) {
   inputEl.className = 'testi';
   inputEl.value = tag;
   inputEl.name = `emoticon[${dataId}][]`;
+  inputEl.maxlength="20"
   return inputEl;
 }
 
@@ -223,7 +229,7 @@ function getChosung(str) {
   return result;
 }
 
-
+const tagCounts = {};
 // 목록에 있는 패키지일때
 if(arcacons.includes(Number(packageId))){
   createTagFromElement();
@@ -252,6 +258,7 @@ if(arcacons.includes(Number(packageId))){
 
         const dataId = emoticon.getAttribute('data-id');
         if (tags[dataId]) {
+          tagCounts[dataId] = tags[dataId].length || 0;
           for (const tag of tags[dataId]) {
             const conTag = document.createElement('input');
             conTag.className = 'testi';
@@ -294,7 +301,14 @@ if(arcacons.includes(Number(packageId))){
       const dataId = conWrapper
         .querySelector('.emoticon')
         .getAttribute('data-id');
+      
+      if(tagCounts[dataId] === undefined) tagCounts[dataId] = 0;
+      if(tagCounts[dataId] >= 5){
+        alert('5개까지만 가능합니다.');
+        return;
+      }
 
+      tagCounts[dataId] += 1;
       const tagInputEl = createTagInput(dataId, null);
       conWrapper.querySelector('div.tagWrapper').append(tagInputEl);
     });

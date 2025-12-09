@@ -22,3 +22,7 @@
 .hidden {
   display: none !important;
 }
+
+.testi:invalid{
+  background-color: lightpink;
+}
