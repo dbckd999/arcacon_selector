@@ -44,12 +44,13 @@ async function downloadTags(packageIds) {
 
   const z = JSZip();
   const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const packageInfo = (await chrome.storage.local.get('arcacon_package')).arcacon_package || {};
   for (const packageId of packageIds) {
     const value = done[packageId];
     if (!value) continue;
 
     const content = JSON.stringify(value, null, 2);
-    z.file(`${packageId}-${yymmdd}.json`, content);
+    z.file(`${packageInfo[packageId].packageName}(${packageId}).json`, content);
   }
 
   const file = await z.generateAsync({ type: "blob" });
