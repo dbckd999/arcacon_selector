@@ -21,7 +21,7 @@ async function downloadTags(packageIds) {
   const heads = (await chrome.storage.local.get('arcacon_package')).arcacon_package || {};
 
   const promises = packageIds.map(async (pID) => {
-    const headInfo = await db.package_info.get(pID);
+    const headInfo = (await db.package_info.get(pID)) || {};
     const emoticon = await db.emoticon.where('packageId').equals(pID).toArray();
     return [
       pID,

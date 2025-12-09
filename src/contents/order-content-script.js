@@ -47,8 +47,8 @@ orderApplyBtn.addEventListener('click', () => {
         origin[enable].available = true;
       } else {
         origin[enable] = {
-          packageName: '데이터 없음('+String(enable)+')',
-          title: '데이터 없음',
+          packageName: '데이터 없음(ID:'+String(enable)+')',
+          title: '데이터 없음(ID:'+String(enable)+')',
           visible: true,
           available: true,
         };
