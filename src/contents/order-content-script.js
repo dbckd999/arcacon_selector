@@ -5,35 +5,60 @@ const orderApplyBtn = document.querySelector(
 const enabledEmoticon = document.querySelector(
   'table[data-action-role="emoticons.enabled"]'
 );
-const disabledEmoticon = document.querySelector(
-  'table[data-action-role="emoticons.disabled"]'
-);
-const expiredEmoticon = document.querySelector(
-  'table[data-action-role="emoticons.expired"]'
-);
+// const disabledEmoticon = document.querySelector(
+//   'table[data-action-role="emoticons.disabled"]'
+// );
+// const expiredEmoticon = document.querySelector(
+//   'table[data-action-role="emoticons.expired"]'
+// );
 
 orderApplyBtn.addEventListener('click', () => {
   const enabled = Array.from(enabledEmoticon.querySelectorAll('input'), (e) =>
     Number(e.value)
   );
-  const disabled = Array.from(disabledEmoticon.querySelectorAll('input'), (e) =>
-    Number(e.value)
-  );
-  const expired = Array.from(expiredEmoticon.querySelectorAll('input'), (e) =>
-    Number(e.value)
-  );
+  // const disabled = Array.from(disabledEmoticon.querySelectorAll('input'), (e) =>
+  //   Number(e.value)
+  // );
+  // const expired = Array.from(expiredEmoticon.querySelectorAll('input'), (e) =>
+  //   Number(e.value)
+  // );
 
   console.log('Enabled:', enabled);
-  console.log('Disabled:', disabled);
-  console.log('Expired:', expired);
+  // console.log('Disabled:', disabled);
+  // console.log('Expired:', expired);
 
-  // 수집한 데이터를 background로 전송합니다.
-  chrome.runtime.sendMessage({
-    action: 'orderUpdated',
-    data: {
-      enabled,
-      disabled,
-      expired,
-    },
+  // 수집한 데이터 설정
+  // TODO arcacon_enabled대신 arcacon_package.available 사용
+  chrome.storage.local.set({
+    arcacon_enabled: enabled,
+    // arcacon_disabled: disabled,
+    // arcacon_expired: expired,
   });
+
+  chrome.storage.local.get('arcacon_package')
+  .then((res) => {
+    const origin = res.arcacon_package;
+
+    Object.keys(origin).forEach((key) => {
+      origin[key].available = false;
+    });
+    enabled.forEach((enable) => {
+      if (enable in origin) {
+        origin[enable].available = true;
+      } else {
+        origin[enable] = {
+          packageName: '데이터 없음',
+          title: '데이터 없음',
+          visible: true,
+          available: true,
+        };
+      }
+    });
+
+    // TODO fix 기존에 없었던 데이터를 입력하는 경우
+
+
+    chrome.storage.local.set({'arcacon_package': origin });
+  });
+    
 });

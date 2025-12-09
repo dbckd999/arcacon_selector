@@ -57,17 +57,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ status: 'ok' });
         break;
 
-      case 'orderUpdated':
-        {
-          const { enabled, disabled, expired } = data;
-          await chrome.storage.local.set({
-            arcacon_enabled: enabled,
-            arcacon_disabled: disabled,
-            arcacon_expired: expired,
-          });
-          sendResponse({ status: 'ok' });
-        }
-        break;
+      // case 'orderUpdated':
+      //   {
+      //     const { enabled, disabled, expired } = data;
+      //     await chrome.storage.local.set({
+      //       arcacon_enabled: enabled,
+      //       arcacon_disabled: disabled,
+      //       arcacon_expired: expired,
+      //     });
+      //     sendResponse({ status: 'ok' });
+      //   }
+      //   break;
 
       // 태그데이터 요청
       case 'getTags':
