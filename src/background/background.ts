@@ -110,10 +110,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           loc[head.packageId] = target;
           chrome.storage.local.set({ arcacon_package: loc });
         });
-        db.base_emoticon.put({
-          packageId: head.packageId,
-          src: await downloadResource(head.url),
-        });
         
         const downloadQueue = data.map(async (el: any) => ({
           conId: el.conId,

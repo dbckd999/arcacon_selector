@@ -129,7 +129,6 @@ function createCollectElement() {
     const head = {
       packageId,
       title: document.querySelector('meta[name=title]').getAttribute('content'),
-      url: 'https:' + document.querySelector('div.emoticon-header-icon .emoticon').getAttribute('src'),
     }
 
     chrome.runtime
