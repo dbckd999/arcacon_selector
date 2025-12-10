@@ -270,7 +270,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       // 콘 게시
       case 'recordEmoticon':
         const { emoticonId, attachmentId } = msg.data;
-        console.log(emoticonId, attachmentId);
+        console.log('콘 게시', emoticonId, attachmentId);
         res = await repleCon(emoticonId, attachmentId);
         break;
       // 콤보콘 게시

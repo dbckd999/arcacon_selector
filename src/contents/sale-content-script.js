@@ -34,7 +34,7 @@ function createTagFromElement() {
     event.preventDefault();
 
     const formData = new FormData(conForm);
-    console.log(formData.keys());
+    console.log('폼 데이터 키', formData.keys());
     const jsonData = {};
     // 키: 콘ID, 값: [태그...]
 
@@ -62,7 +62,7 @@ function createTagFromElement() {
     }
 
     const mapped = {};
-    console.log(jsonData);
+    console.log('json형태로 변환된 form데이터', jsonData);
     for (const key of Object.keys(jsonData)) {
       mapped[Number(key)] = 
       {

@@ -33,7 +33,7 @@ chrome.storage.local.get('arcacon_setting').then((res) => {
 // 설정값들 setting객체에 저장
 function setSetting(event: Event) {
   const element = event.target as HTMLInputElement;
-  console.log(element);
+  console.log('설정할 엘리먼트', element);
 
   const key: string = element.getAttribute('data-setting');
   let value: string|boolean = element.value;

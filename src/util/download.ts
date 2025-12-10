@@ -12,7 +12,7 @@ export async function downloadResource(url: string) {
     return b;
   } catch (error) {
     console.error('url:', url);
-    console.error('Error downloading resource:', error);
+    console.error('리소스 다운로드 에러:', error);
     return null; // 또는 에러 처리에 따라 다른 값 반환
   }
 }

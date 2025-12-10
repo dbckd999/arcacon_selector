@@ -39,7 +39,7 @@ export async function updateIndex() {
     if (!heads[pID] && !emoticon.tags) return;
     if (!emoticon.tags) return;
 
-    console.log(emoticon);
+    console.log('인덱스에 추가됨', emoticon);
 
     indexMap.push({
       conId: emoticon.conId,

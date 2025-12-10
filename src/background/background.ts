@@ -72,7 +72,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       // 태그데이터 요청
       case 'getTags':
         const pId: number = Number(data);
-        console.log(pId);
+        console.log(pId, '태그 로드중');
         const emoticons: IEmoticon[] = await db.emoticon
           .where('packageId')
           .equals(pId)
@@ -87,7 +87,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         result[pId] = tags;
 
         const headerTags = await db.package_info.get(pId);
-        console.log(headerTags);
+        console.log(pId, '태그 헤더데이터', headerTags);
 
         sendResponse({ status: 'ok', data: result, head: headerTags || [] });
         break;

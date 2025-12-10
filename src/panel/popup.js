@@ -73,7 +73,7 @@ async function showConPackage(packageId, pakcageName) {
       try {
         conBase.setAttribute('src', URL.createObjectURL(element.image));
       } catch (e) {
-        console.error(packageId, pakcageName, element.conId);
+        console.error('blob객체 변환중 에러발생', packageId, pakcageName, element.conId);
       }
       conBase.setAttribute('data-id', element.conId);
       images_container.append(conBase);

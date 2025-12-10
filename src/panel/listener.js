@@ -107,7 +107,7 @@ isShow.addEventListener('submit', async (e) => {
 deleteForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = serialize(e.target);
-  console.log(data);
+  console.log('삭제될 데이터', data);
   const ids = Object.keys(data).map(Number);
   ids.forEach((id) => {
     // indexedDB에서 삭제
