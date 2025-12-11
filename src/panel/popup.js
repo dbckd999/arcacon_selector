@@ -24,7 +24,7 @@ import '../css/popup.css';
 import db from '../database';
 
 import ScrollSpy from 'scrollspy-js';
-import '../popupSetting';
+import './popupSetting';
 import '../searchDetail';
 import './jsonImport';
 import './listener'

@@ -1,43 +1,28 @@
 const orderApplyBtn = document.querySelector(
-  'body > div.root-container > div.content-wrapper.clearfix > article > div > form > div.btns > button'
+  'article.containe-fluid.board-article form div.btns button'
 );
 
 const enabledEmoticon = document.querySelector(
   'table[data-action-role="emoticons.enabled"]'
 );
-// const disabledEmoticon = document.querySelector(
-//   'table[data-action-role="emoticons.disabled"]'
-// );
-// const expiredEmoticon = document.querySelector(
-//   'table[data-action-role="emoticons.expired"]'
-// );
 
 orderApplyBtn.addEventListener('click', () => {
   const enabled = Array.from(enabledEmoticon.querySelectorAll('input'), (e) =>
     Number(e.value)
   );
-  // const disabled = Array.from(disabledEmoticon.querySelectorAll('input'), (e) =>
-  //   Number(e.value)
-  // );
-  // const expired = Array.from(expiredEmoticon.querySelectorAll('input'), (e) =>
-  //   Number(e.value)
-  // );
 
   console.log('Enabled:', enabled);
-  // console.log('Disabled:', disabled);
-  // console.log('Expired:', expired);
 
   // 수집한 데이터 설정
   // TODO arcacon_enabled대신 arcacon_package.available 사용
   chrome.storage.local.set({
     arcacon_enabled: enabled,
-    // arcacon_disabled: disabled,
-    // arcacon_expired: expired,
   });
 
+  // 패키지데이터 갱신
   chrome.storage.local.get('arcacon_package')
   .then((res) => {
-    const origin = res.arcacon_package;
+    const origin = res.arcacon_package || {};
 
     Object.keys(origin).forEach((key) => {
       origin[key].available = false;
