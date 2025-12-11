@@ -35,16 +35,23 @@ export async function updateIndex() {
   const indexMap: searchEntry[] = [];
   emoticons.forEach((emoticon) => {
     const pID = emoticon.packageId;
-    if (appSetting.syncSearch && !packageList[pID].visible) return;
-    if (!heads[pID] && !emoticon.tags) return;
-    if (!emoticon.tags) return;
+    const isHiddenPkg = appSetting.syncSearch && !packageList[pID].visible;
+    const noHead = !heads[pID];
+    const noTags = !emoticon.tags;
 
-    console.log('인덱스에 추가됨', emoticon);
+    const needEmpty =
+      isHiddenPkg ||
+      (noHead && noTags) ||
+      noTags;
 
-    indexMap.push({
-      conId: emoticon.conId,
-      flat: buildFlatSearchText(emoticon, ['tags', 'chosung'], heads[pID]),
-    });
+    indexMap.push(
+      needEmpty
+        ? { conId: emoticon.conId, flat: '' }
+        : {
+          conId: emoticon.conId,
+          flat: buildFlatSearchText(emoticon, ['tags', 'chosung'], heads[pID]),
+        }
+    );
   });
   const index = Fuse.createIndex(['flat'], indexMap).toJSON();
   await db.search_index.put({ id: 1, data: index });
