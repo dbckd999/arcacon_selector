@@ -1,4 +1,4 @@
-import { notify } from './util/notify';
+import { notify } from '../util/notify';
 
 // popup.js의 설정들
 const settingGround = document.querySelectorAll('#setting [data-setting]');
