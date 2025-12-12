@@ -312,6 +312,8 @@ async function main() {
     }
 
   });
+
+  document.querySelector('form#tagInput sl-input').focus();
 }
 
 main();
