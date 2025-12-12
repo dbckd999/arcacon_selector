@@ -78,6 +78,7 @@ const conHeaders = document.getElementById('conHeaders');
 const recordCombocon = document.getElementById('recordCombocon');
 const advencedSearchBtn = document.getElementById('advSearch');
 const nomalSearch = document.getElementById('nomalSearch');
+const searchConWrap = document.querySelector('div#searchResult div.images-container');
 
 // 아카콘 가리기/보이기 설정
 isShow.addEventListener('submit', async (e) => {
@@ -265,6 +266,67 @@ conWrap.addEventListener('click', async (e) => {
     } else {
       notify('전송중입니다.', 'warning', 3000);
     }
+  }
+});
+
+// 검색결과 클릭
+searchConWrap.addEventListener('click', async (e) => {
+  const thumbnail = e.target.closest('.thumbnail');
+
+  if(thumbnail){
+    const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
+    const { packageId:groupId } = await db.emoticon.get(Number(conId));
+
+    // 썸네일 이미지 클릭 시
+    if (conReady && isCombo) {
+      // 단순 엘리먼트 추가
+      addCombocon(groupId, conId, thumbnail.cloneNode(true));
+    } else if (conReady && !isCombo) {
+      try {
+        conReady = false;
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
+        const { status } = await chrome.tabs.sendMessage(tab.id, {
+          action: 'recordEmoticon',
+          data: {
+            emoticonId: groupId,
+            attachmentId: conId,
+          },
+        });
+        if (status === 'ok') {
+          conReady = true;
+        } else {
+          notify('아카라이브의 콘솔을 확인해주세요.', 'danger');
+        }
+      } catch (e) {
+        conReady = true;
+        notify(e, 'danger');
+        console.error(e);
+      }
+    } else {
+      notify('전송중입니다.', 'warning', 3000);
+    }
+  }
+});
+
+// 검색결과 우클릭
+
+searchConWrap.addEventListener('contextmenu', async (e) => {
+  e.preventDefault();
+
+  const thumbnail = e.target.closest('.thumbnail');
+
+  if(thumbnail){
+    const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
+    const searchOrigin = document.querySelector('div#conWrap div.images-container img[data-id=\''+conId+'\']');
+    searchOrigin.scrollIntoView({ block: 'center' });
+    
+    
+    searchOrigin.classList.remove('flash-border'); // 재사용 가능하게 초기화
+    void searchOrigin.offsetWidth;                // 리플로우로 재시작
+    searchOrigin.classList.add('flash-border');
   }
 });
 
