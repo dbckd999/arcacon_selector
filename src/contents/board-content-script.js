@@ -72,10 +72,7 @@ async function repleCon(emoticonId, attachmentId) {
 }
 
 async function repleComboCon(combolist) {
-  if (combolist.length === 0) {
-    return;
-  }
-  // combolist = combolist.map(String);
+  if (combolist.length === 0) return;
   const csrf = document
     .querySelector('form#commentForm input[name="_csrf"]')
     .getAttribute('value');
@@ -84,9 +81,10 @@ async function repleComboCon(combolist) {
   const cmtURL = url.origin + url.pathname + '/comment';
   const bodyInit = {
     _csrf: csrf,
-    contentType: 'emoticon',
-    emoticonId,
-    attachmentId,
+    contentType: 'combo_emoticon',
+    'option-combo-emoticon': 'on',
+    combolist: JSON.stringify(combolist),
+    content: '',
   };
   if (cmtSelected !== '') bodyInit.parentId = cmtSelected;
   const fetchInput = {

@@ -141,8 +141,9 @@ downloadForm.addEventListener('submit', (e) => {
 
 // 콤보콘 상태변경
 const repleyComboBtn = document.getElementById('recordCombocon');
-comboCon.addEventListener('sl-change', (e) => {
-  isCombo = !e.target.hasAttribute('checked');
+comboCon.addEventListener('sl-change', async (e) => {
+  await e.target.updateComplete;
+  isCombo = e.target.hasAttribute('checked');
   if (isCombo) {
     // 콤보콘 설정이 활성화 되었을때
     repleyComboBtn.removeAttribute('disabled');
@@ -205,20 +206,20 @@ conHeaders.addEventListener('click', (e) => {
 // 콤보콘 게시
 recordCombocon.addEventListener('click', async () => {
     conReady = false;
-    document.getElementById('comboCon').click();
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
     const { status } = await chrome.tabs.sendMessage(tab.id, {
       action: 'recordCombocon',
-      data: conPackage,
+      data: state.conPackage,
     });
     if (status === 'ok') {
       conReady = true;
     } else {
       notify(status, 'danger');
     }
+    document.getElementById('comboCon').click();
 });
 
 // 아카콘 클릭
@@ -312,7 +313,6 @@ searchConWrap.addEventListener('click', async (e) => {
 });
 
 // 검색결과 우클릭
-
 searchConWrap.addEventListener('contextmenu', async (e) => {
   e.preventDefault();
 
@@ -323,9 +323,8 @@ searchConWrap.addEventListener('contextmenu', async (e) => {
     const searchOrigin = document.querySelector('div#conWrap div.images-container img[data-id=\''+conId+'\']');
     searchOrigin.scrollIntoView({ block: 'center' });
     
-    
-    searchOrigin.classList.remove('flash-border'); // 재사용 가능하게 초기화
-    void searchOrigin.offsetWidth;                // 리플로우로 재시작
+    searchOrigin.classList.remove('flash-border');
+    void searchOrigin.offsetWidth;
     searchOrigin.classList.add('flash-border');
   }
 });
