@@ -4,11 +4,10 @@
   "description": "My Chrome Extension",
   "private": true,
   "scripts": {
-    "watch": "webpack --mode=development --env target=chrome --watch --config config/webpack.config.js",
+    "watch": "webpack --mode=development --watch --config config/webpack.config.js --env target=chrome",
+    "build": "webpack --mode=production --config config/webpack.config.js --env target=chrome && node pack.js --env target=chrome",
     "watchf": "webpack --mode=development --watch --config config/webpack.config.js --env target=firefox",
-    "build": "webpack --mode=production --config config/webpack.config.js --env target=chrome",
-    "pack": "node pack.js",
-    "repack": "npm run build && npm run pack",
+    "buildf": "webpack --mode=production --config config/webpack.config.js --env target=firefox && node pack.js --env target=firefox",
     "format": "prettier --write --ignore-unknown \"{config,public,src}/**/*.{html,css,js,ts,json}\""
   },
   "devDependencies": {
