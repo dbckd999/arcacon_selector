@@ -7,7 +7,6 @@ import '@shoelace-style/shoelace/dist/components/divider/divider.js';
 import '@shoelace-style/shoelace/dist/components/range/range.js';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js';
 
-
 import '@shoelace-style/shoelace/dist/components/tag/tag.js';
 import '@shoelace-style/shoelace/dist/components/dialog/dialog.js';
 import '@shoelace-style/shoelace/dist/components/input/input.js';
@@ -86,7 +85,6 @@ async function showConPackage(packageId, pakcageName) {
   } else {
     // 이미지 그룹에 사진 추가
     query.forEach((element) => {
-
       // 툴팁: 태그표시
       const tip = document.createElement('sl-tooltip');
       tip.setAttribute('placement', 'bottom');
@@ -108,7 +106,6 @@ async function showConPackage(packageId, pakcageName) {
         console.error('blob객체 변환중 에러발생', packageId, pakcageName, element.conId);
       }
       conBase.setAttribute('data-id', element.conId);
-      // images_container.append(conBase);
       tip.append(conBase);
       images_container.append(tip);
     });
@@ -262,7 +259,6 @@ async function main() {
   
   // 4. 콘 삭제목록(보이는,가려진 + 사용불가능한)
   const deleteForm = document.getElementById('delete-data');
-  // <li><sl-checkbox>나쁜 버터콘</sl-checkbox></li>
   state.customSort.forEach((pID) => {
     const li = document.createElement('li');
     const box = document.createElement('sl-checkbox');
@@ -335,6 +331,3 @@ async function main() {
 }
 
 main();
-
-// 기본값은 알아서 가져옴
-// const setting = new SettingsStore();

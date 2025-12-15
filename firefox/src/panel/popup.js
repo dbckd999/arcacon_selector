@@ -15,6 +15,9 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group.js';
 import '@shoelace-style/shoelace/dist/components/drawer/drawer.js';
 import '@shoelace-style/shoelace/dist/components/avatar/avatar.js';
+import '@shoelace-style/shoelace/dist/components/popup/popup.js';
+
+import '@shoelace-style/shoelace/dist/components/tooltip/tooltip.js';
 
 import './emergency'
 
@@ -82,6 +85,17 @@ async function showConPackage(packageId, pakcageName) {
   } else {
     // 이미지 그룹에 사진 추가
     query.forEach((element) => {
+      // 툴팁: 태그표시
+      const tip = document.createElement('sl-tooltip');
+      tip.setAttribute('placement', 'bottom');
+      tip.setAttribute('trigger', 'manual');
+      tip.style.display = 'inline-block';
+
+      const content = document.createElement('div');
+      content.setAttribute('slot', 'content');
+      content.innerHTML = (element.tags) ? String(element.tags).replace(/,/g, '<br />') : '...';
+      tip.append(content);
+
       const conBase = document.createElement('img');
       conBase.setAttribute('loading', 'lazy');
       conBase.setAttribute('class', 'thumbnail');
@@ -92,7 +106,8 @@ async function showConPackage(packageId, pakcageName) {
         console.error('blob객체 변환중 에러발생', packageId, pakcageName, element.conId);
       }
       conBase.setAttribute('data-id', element.conId);
-      images_container.append(conBase);
+      tip.append(conBase);
+      images_container.append(tip);
     });
   }
 }
@@ -244,7 +259,6 @@ async function main() {
   
   // 4. 콘 삭제목록(보이는,가려진 + 사용불가능한)
   const deleteForm = document.getElementById('delete-data');
-  // <li><sl-checkbox>나쁜 버터콘</sl-checkbox></li>
   state.customSort.forEach((pID) => {
     const li = document.createElement('li');
     const box = document.createElement('sl-checkbox');
@@ -317,6 +331,3 @@ async function main() {
 }
 
 main();
-
-// 기본값은 알아서 가져옴
-// const setting = new SettingsStore();
