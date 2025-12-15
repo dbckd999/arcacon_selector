@@ -3,7 +3,6 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-const PATHS = require('./paths');
 const path = require('path');
 
 // used in the module rules and in the stats exlude list
@@ -13,65 +12,74 @@ const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
 // CLI maintains a common webpack configuration file - `webpack.common.js`.
 // Whenever user creates an extension, CLI adds `webpack.common.js` file
 // in template's `config` folder
-const common = {
-  output: {
-    // the build folder to output bundles and assets in.
-    path: PATHS.build,
-    // the filename template for entry chunks
-    filename: '[name].js',
-  },
-  stats: {
-    all: false,
-    errors: true,
-    builtAt: true,
-    assets: true,
-    excludeAssets: [IMAGE_TYPES],
-  },
-  module: {
-    rules: [
-      // Help webpack in understanding CSS files imported in .js files
-      {
-        test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
-      },
-      // Check for images imported in .js files and
-      {
-        test: IMAGE_TYPES,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              outputPath: 'images',
-              name: '[name].[ext]',
-            },
-          },
-        ],
-      },
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-  plugins: [
-    // Copy static assets from `public` folder to `build` folder
-    new CopyWebpackPlugin({
-      patterns: [
+const common = (env, argv) => {
+  const target = env.target; // chrome | firefox
+  if (!target) throw new Error('env.target required');
+  
+  return {
+    output: {
+      // the build folder to output bundles and assets in.
+      path: path.resolve(__dirname, '..', target, 'build'),
+      // the filename template for entry chunks
+      filename: '[name].js',
+    },
+    stats: {
+      all: false,
+      errors: true,
+      builtAt: true,
+      assets: true,
+      excludeAssets: [IMAGE_TYPES],
+    },
+    module: {
+      rules: [
+        // Help webpack in understanding CSS files imported in .js files
         {
-          from: '**/*',
-          context: 'public',
+          test: /\.css$/,
+          use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        },
+        // Check for images imported in .js files and
+        {
+          test: IMAGE_TYPES,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                outputPath: 'images',
+                name: '[name].[ext]',
+              },
+            },
+          ],
+        },
+        {
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
         },
       ],
-    }),
-    // Extract CSS into separate files
-    new MiniCssExtractPlugin({
-      filename: '[name].css',
-    }),
-  ],
-};
+    },
+    resolve: {
+      extensions: ['.tsx', '.ts', '.js'],
+    },
+    plugins: [
+      // Copy static assets from `public` folder to `build` folder
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: '**/*',
+            context: path.resolve(__dirname, '../public'),
+          },
+          {
+            from: path.resolve(__dirname, '..', target, 'src/manifest.json'),
+            to: 'manifest.json',
+          }
+        ],
+      }),
+      // Extract CSS into separate files
+      new MiniCssExtractPlugin({
+        filename: '[name].css',
+      }),
+    ],
+  };
+}
 
 module.exports = common;
