@@ -79,6 +79,8 @@ const recordCombocon = document.getElementById('recordCombocon');
 const advencedSearchBtn = document.getElementById('advSearch');
 const nomalSearch = document.getElementById('nomalSearch');
 const searchConWrap = document.querySelector('div#searchResult div.images-container');
+const conWrap = document.getElementById('conWrap');
+
 
 // 아카콘 가리기/보이기 설정
 isShow.addEventListener('submit', async (e) => {
@@ -267,6 +269,21 @@ conWrap.addEventListener('click', async (e) => {
     } else {
       notify('전송중입니다.', 'warning', 3000);
     }
+  }
+});
+
+// 아카콘 우클릭
+conWrap.addEventListener('contextmenu', async (e) => {
+  // 클릭된 요소가 .thumbnail인지 확인
+  const thumbnail = e.target.closest('.thumbnail');
+  const tooltip = e.target.closest('sl-tooltip');
+  
+  if(thumbnail){
+    e.preventDefault();
+    tooltip.open = true;
+    setTimeout(() => {
+      tooltip.open = false;
+    }, 3000);
   }
 });
 

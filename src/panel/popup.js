@@ -7,6 +7,7 @@ import '@shoelace-style/shoelace/dist/components/divider/divider.js';
 import '@shoelace-style/shoelace/dist/components/range/range.js';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js';
 
+
 import '@shoelace-style/shoelace/dist/components/tag/tag.js';
 import '@shoelace-style/shoelace/dist/components/dialog/dialog.js';
 import '@shoelace-style/shoelace/dist/components/input/input.js';
@@ -15,6 +16,9 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox.js';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group.js';
 import '@shoelace-style/shoelace/dist/components/drawer/drawer.js';
 import '@shoelace-style/shoelace/dist/components/avatar/avatar.js';
+import '@shoelace-style/shoelace/dist/components/popup/popup.js';
+
+import '@shoelace-style/shoelace/dist/components/tooltip/tooltip.js';
 
 import './emergency'
 
@@ -82,6 +86,18 @@ async function showConPackage(packageId, pakcageName) {
   } else {
     // 이미지 그룹에 사진 추가
     query.forEach((element) => {
+
+      // 툴팁: 태그표시
+      const tip = document.createElement('sl-tooltip');
+      tip.setAttribute('placement', 'bottom');
+      tip.setAttribute('trigger', 'manual');
+      tip.style.display = 'inline-block';
+
+      const content = document.createElement('div');
+      content.setAttribute('slot', 'content');
+      content.innerHTML = (element.tags) ? String(element.tags).replace(/,/g, '<br />') : '...';
+      tip.append(content);
+
       const conBase = document.createElement('img');
       conBase.setAttribute('loading', 'lazy');
       conBase.setAttribute('class', 'thumbnail');
@@ -92,7 +108,9 @@ async function showConPackage(packageId, pakcageName) {
         console.error('blob객체 변환중 에러발생', packageId, pakcageName, element.conId);
       }
       conBase.setAttribute('data-id', element.conId);
-      images_container.append(conBase);
+      // images_container.append(conBase);
+      tip.append(conBase);
+      images_container.append(tip);
     });
   }
 }
