@@ -18,8 +18,8 @@ let setting: { [key: string]: string|boolean } = {};
 chrome.storage.local.get('arcacon_setting').then((res) => {
   setting = res['arcacon_setting'] || {};
 
-  document.querySelector('#setting [data-setting=isSleep]')
-    .setAttribute('checked', setting.isSleep as string);
+  if (setting.isSleep) document.querySelector('#setting [data-setting=isSleep]')
+    .setAttribute('checked', 'true');
   document.querySelector('#setting [data-setting=sleepTime]')
     .setAttribute('value', setting.sleepTime as string);
   document.querySelector('#setting [data-setting=conSize]')
