@@ -270,6 +270,37 @@ conWrap.addEventListener('click', async (e) => {
   }
 });
 
+// 아카콘 우클릭
+conWrap.addEventListener('contextmenu', async (e) => {
+  // 클릭된 요소가 .thumbnail인지 확인
+  const thumbnail = e.target.closest('.thumbnail');
+  const tooltip = e.target.closest('sl-tooltip');
+  
+  if(thumbnail){
+    e.preventDefault();
+
+    const data = await db.emoticon.get(Number(thumbnail.getAttribute('data-id')));
+    if(data.video){
+      thumbnail.hidden = true;
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(data.video);
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.classList.add('thumbnail');
+      video.classList.add('is-playing');
+      tooltip.querySelector('div.media').append(video);
+    }
+
+    tooltip.open = true;
+    setTimeout(() => {
+      thumbnail.hidden = false;
+      if(data.video) tooltip.querySelector('div.media').removeChild(tooltip.querySelector('video'));
+      tooltip.open = false;
+    }, 3000);
+  }
+});
+
 // 검색결과 클릭
 searchConWrap.addEventListener('click', async (e) => {
   const thumbnail = e.target.closest('.thumbnail');

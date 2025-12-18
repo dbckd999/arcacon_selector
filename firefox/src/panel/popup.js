@@ -96,9 +96,14 @@ async function showConPackage(packageId, pakcageName) {
       content.innerHTML = (element.tags) ? String(element.tags).replace(/,/g, '<br />') : '...';
       tip.append(content);
 
+      const mediaWrap = document.createElement('div');
+      mediaWrap.setAttribute('class', 'media');
+
       const conBase = document.createElement('img');
       conBase.setAttribute('loading', 'lazy');
       conBase.setAttribute('class', 'thumbnail');
+
+      mediaWrap.append(conBase);
       // 다운로드 에러나면서 꼬이는듯?
       try {
         conBase.setAttribute('src', URL.createObjectURL(element.image));
@@ -106,7 +111,8 @@ async function showConPackage(packageId, pakcageName) {
         console.error('blob객체 변환중 에러발생', packageId, pakcageName, element.conId);
       }
       conBase.setAttribute('data-id', element.conId);
-      tip.append(conBase);
+      // tip.append(conBase);
+      tip.append(mediaWrap);
       images_container.append(tip);
     });
   }
@@ -317,7 +323,8 @@ async function main() {
     // 아카콘 크기
     if (setting.conSize) {
       document.getElementById('conStyle').innerText = `
-      .images-container img {
+      sl-tooltip div.media {
+        position: relative;
         width: ${setting.conSize}px;
         height: ${setting.conSize}px;
       }

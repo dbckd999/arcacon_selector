@@ -280,8 +280,24 @@ conWrap.addEventListener('contextmenu', async (e) => {
   
   if(thumbnail){
     e.preventDefault();
+
+    const data = await db.emoticon.get(Number(thumbnail.getAttribute('data-id')));
+    if(data.video){
+      thumbnail.hidden = true;
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(data.video);
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.classList.add('thumbnail');
+      video.classList.add('is-playing');
+      tooltip.querySelector('div.media').append(video);
+    }
+
     tooltip.open = true;
     setTimeout(() => {
+      thumbnail.hidden = false;
+      if(data.video) tooltip.querySelector('div.media').removeChild(tooltip.querySelector('video'));
       tooltip.open = false;
     }, 3000);
   }
