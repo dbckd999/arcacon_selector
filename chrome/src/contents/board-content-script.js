@@ -1,4 +1,4 @@
-import '../css/board-content-script.css';
+import '../../../public/css/board-content-script.css';
 
 /**
  * 지정된 시간 동안 주기적으로 selector에 해당하는 엘리먼트를 찾습니다.

@@ -1,6 +1,6 @@
 'use strict';
 
-import '../css/conMod.css';
+import '../../../public/css/conMod.css';
 
 const arcacons = (await browser.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
 const packageId = Number(new URL(window.location.href).pathname.replace('/e/', ''));
