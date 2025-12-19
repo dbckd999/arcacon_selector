@@ -222,7 +222,7 @@ browser.runtime.onInstalled.addListener(() => {
     browser.storage.local.set({ arcacon_setting: setting });
   });
   
-  chrome.storage.local.set({ release: true });
+  browser.storage.local.set({ release: true });
 });
 
 // background.js

@@ -233,8 +233,8 @@ async function main() {
   }
 
   // 릴리즈노트는 설치/업데이트때 한번만 표시됨
-  if((await chrome.storage.local.get('release')).release){
-    await chrome.storage.local.set({ release: false });
+  if((await browser.storage.local.get('release')).release){
+    await browser.storage.local.set({ release: false });
     document.getElementById('release').show();
   }
   
