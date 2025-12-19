@@ -80,7 +80,8 @@ const advencedSearchBtn = document.getElementById('advSearch');
 const nomalSearch = document.getElementById('nomalSearch');
 const searchConWrap = document.querySelector('div#searchResult div.images-container');
 const conWrap = document.getElementById('conWrap');
-
+const releaseLink = document.getElementById('releaseLink');
+const release = document.getElementById('release');
 
 // 아카콘 가리기/보이기 설정
 isShow.addEventListener('submit', async (e) => {
@@ -398,6 +399,9 @@ document.getElementById('acvenceTag').addEventListener('submit', async e=>{
     }
   }
 });
+
+// 릴리즈노트 다이얼로그창
+releaseLink.addEventListener('click', () => { release.show(); });
 
 const drawer = document.querySelector('.drawer');
 const openButton = document.getElementById('searchHelp');

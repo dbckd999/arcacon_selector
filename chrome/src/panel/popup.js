@@ -6,6 +6,7 @@ import '@shoelace-style/shoelace/dist/components/switch/switch.js';
 import '@shoelace-style/shoelace/dist/components/divider/divider.js';
 import '@shoelace-style/shoelace/dist/components/range/range.js';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js';
+import '@shoelace-style/shoelace/dist/components/include/include.js';
 
 import '@shoelace-style/shoelace/dist/components/tag/tag.js';
 import '@shoelace-style/shoelace/dist/components/dialog/dialog.js';
@@ -229,6 +230,12 @@ async function main() {
   if (navBar) {
     const resizeObserver = new ResizeObserver(updateScrollSpyOffset);
     resizeObserver.observe(navBar);
+  }
+
+  // 릴리즈노트는 설치/업데이트때 한번만 표시됨
+  if((await chrome.storage.local.get('release')).release){
+    await chrome.storage.local.set({ release: false });
+    document.getElementById('release').show();
   }
   
   // 3. 콘 정렬에 맞춰 동작

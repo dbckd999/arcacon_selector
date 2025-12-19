@@ -44,10 +44,11 @@
     <h4>프로그램 정보</h4>
 <pre>
 버전: <span id="version">Error</span>
-릴리즈 링크: <a class="newtab" href="https://github.com/dbckd999/arcacon_selector/releases">링크</a>
+릴리즈: <span id="releaseLink">열기</span>
 
 개발자: dbckd999
-GitHub 링크: <a class="newtab" href="https://github.com/dbckd999/arcacon_selector">Github</a>
+
+GitHub 링크: <a class="newtab" href="https://github.com/dbckd999/arcacon_selector"><sl-icon name="github"></sl-icon></a>
 버그 제보: <a class="newtab" href="https://github.com/dbckd999/arcacon_selector/issues">이슈 링크</a>
 라이선스: <a class="newtab" href="./license.html">LISENCE</a>
 </pre>
@@ -61,6 +62,11 @@ GitHub 링크: <a class="newtab" href="https://github.com/dbckd999/arcacon_selec
       <!-- <sl-button id="secureBtn">태그데이터 요청</sl-button> -->
       <!-- <sl-button id="new_test">토큰 테스트</sl-button> -->
       <!-- </sl-tab-panel> -->
+  </sl-dialog>
+
+  <!-- 릴리즈노트 -->
+  <sl-dialog id="release" label="릴리즈노트" class="dialog-overview">
+    <sl-include src="./chagelog.html"></sl-include>
   </sl-dialog>
 
   <sl-dialog id="data-manamge" label="데이터 관리" class="dialog-overview">

@@ -221,6 +221,8 @@ chrome.runtime.onInstalled.addListener(() => {
 
     chrome.storage.local.set({ arcacon_setting: setting });
   });
+
+  chrome.storage.local.set({ release: true });
 });
 
 // background.js
