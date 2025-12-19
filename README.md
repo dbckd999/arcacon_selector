@@ -16,6 +16,7 @@
 ### 설치
 
 [**크롬 웹스토어**](https://chromewebstore.google.com/detail/arcaconselector/mmbcnlgkjcnmikpipbgoionjidmofino)
+[**파이어폭스 웹스토어**](https://addons.mozilla.org/ko/firefox/addon/arcacon_selector/)
 
 ---
 이 프로젝트의 라이선스는 MIT를 따르고 있습니다.
