@@ -3,15 +3,15 @@ const { parse, resolve } = require('path');
 const AdmZip = require('adm-zip');
 
 try {
-
   const target = process.argv.find(v => v.startsWith('--target='))?.split('=')[1];
   if (!target) throw new Error('target required');
 
-  console.log(resolve(__dirname, target, 'build', 'manifest.json'));
   const { base } = parse(__dirname);
   const { version } = JSON.parse(
     readFileSync(resolve(__dirname, target, 'build', 'manifest.json'), 'utf8')
   );
+
+  console.log(target, 'v'+version, 'pack start');
 
   const outdir = 'release';
   const filename = `${base}-${target}-v${version}.zip`;
@@ -24,9 +24,7 @@ try {
   }
   zip.writeZip(`${outdir}/${filename}`);
 
-  console.log(
-    `Success! Created a ${filename} file under ${outdir} directory. You can upload this file to web store.`
-  );
+  console.log('pack done');
 } catch (e) {
   console.error(e);
   console.error('Error! Failed to generate a zip file.');
