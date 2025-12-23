@@ -81,6 +81,7 @@ const nomalSearch = document.getElementById('nomalSearch');
 const searchConWrap = document.querySelector('div#searchResult div.images-container');
 const releaseLink = document.getElementById('releaseLink');
 const release = document.getElementById('release');
+const syncToLocal = document.getElementById('syncToLocal');
 
 // 아카콘 가리기/보이기 설정
 isShow.addEventListener('submit', async (e) => {
@@ -397,6 +398,36 @@ document.getElementById('acvenceTag').addEventListener('submit', async e=>{
       });
     }
   }
+});
+
+syncToLocal.addEventListener('click', async () => {
+  const data = await browser.storage.sync.get(['arcacon_package', 'arcacon_enabled', 'arcacon_setting']);
+  const setting = (await browser.storage.local.get(['arcacon_setting'])).arcacon_setting;
+
+  try {
+    if (setting.syncArcacons) browser.storage.local.set({ arcacon_package: data.arcacon_package });
+    if (setting.syncArcacons) browser.storage.local.set({ arcacon_enabled: data.arcacon_enabled });
+    if (setting.syncSetting) browser.storage.local.set({ arcacon_setting: data.arcacon_setting });
+  } catch (e) {
+    notify(e, 'danger');
+  }
+  notify('계정에서 데이터를 연동했습니다.', 'success');
+});
+
+// 설정이 켜질때 로컬값이 계정과 바로 연동
+const syncSetting = document.querySelector('sl-switch[data-setting=syncSetting]');
+syncSetting.addEventListener('sl-change', async (e) => {
+  await e.target.updateComplete;
+  // 더미데이터로 onChanged이벤트 발생
+  browser.storage.local.set({ wow: Date.now() });
+});
+
+// 설정이 켜질때 로컬값이 계정과 바로 연동
+const syncArcacons = document.querySelector('sl-switch[data-setting=syncArcacons]');
+syncArcacons.addEventListener('sl-change', async (e) => {
+  await e.target.updateComplete;
+  // 더미데이터로 onChanged이벤트 발생
+  browser.storage.local.set({ wow: Date.now() });
 });
 
 // 릴리즈노트 다이얼로그창

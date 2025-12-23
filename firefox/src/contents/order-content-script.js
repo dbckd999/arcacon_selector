@@ -14,7 +14,6 @@ orderApplyBtn.addEventListener('click', () => {
   console.log('Enabled:', enabled);
 
   // 수집한 데이터 설정
-  // TODO arcacon_enabled대신 arcacon_package.available 사용
   browser.storage.local.set({
     arcacon_enabled: enabled,
   });
