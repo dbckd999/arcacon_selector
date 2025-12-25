@@ -20,10 +20,10 @@ import '@shoelace-style/shoelace/dist/components/popup/popup.js';
 
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip.js';
 
-import './emergency'
+import './emergency';
 
 // 전역변수는 별도로 관리
-import * as state from './state'
+import * as state from './state';
 import '../../../public/css/popup.css';
 
 import db from '../database';
@@ -32,9 +32,10 @@ import ScrollSpy from 'scrollspy-js';
 import './popupSetting';
 import '../searchDetail';
 import './jsonImport';
-import './listener'
+import './listener';
 
-document.getElementById('version').textContent = browser.runtime.getManifest().version;
+document.getElementById('version').textContent =
+  browser.runtime.getManifest().version;
 
 // 특정 패키지 출력
 async function showConPackage(packageId, pakcageName) {
@@ -94,7 +95,9 @@ async function showConPackage(packageId, pakcageName) {
 
       const content = document.createElement('div');
       content.setAttribute('slot', 'content');
-      content.innerHTML = (element.tags) ? String(element.tags).replace(/,/g, '<br />') : '...';
+      content.innerHTML = element.tags
+        ? String(element.tags).replace(/,/g, '<br />')
+        : '...';
       tip.append(content);
 
       const mediaWrap = document.createElement('div');
@@ -109,7 +112,12 @@ async function showConPackage(packageId, pakcageName) {
       try {
         conBase.setAttribute('src', URL.createObjectURL(element.image));
       } catch (e) {
-        console.error('blob객체 변환중 에러발생', packageId, pakcageName, element.conId);
+        console.error(
+          'blob객체 변환중 에러발생',
+          packageId,
+          pakcageName,
+          element.conId
+        );
       }
       conBase.setAttribute('data-id', element.conId);
       // tip.append(conBase);
@@ -132,22 +140,24 @@ async function conListup() {
 
   // 아바타의 href 속성을 설정하여 scrollspy-js가 타겟을 찾을 수 있도록 합니다.
   state.customSort.forEach((pID) => {
-    if(!state.packageList[pID].visible) return;
-    
+    if (!state.packageList[pID].visible) return;
+
     // scrollspy-js는 <a> 태그의 href를 참조하므로, <a> 태그를 생성합니다.
     const anchor = document.createElement('a');
     anchor.href = `#${pID}`;
 
     const imgElement = document.createElement('sl-avatar');
     imgElement.setAttribute('data-id', pID);
-    try{
+    try {
       imgElement.setAttribute('image', URL.createObjectURL(objHeads[pID]));
     } catch (e) {
       const empty = document.createElement('sl-icon');
       empty.setAttribute('slot', 'icon');
       empty.setAttribute('name', 'image');
       imgElement.append(empty);
-      console.warn(`데이터가 비어있습니다. https://arca.live/e/${pID} 에서 '데이터 수집하기'나 댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`);
+      console.warn(
+        `데이터가 비어있습니다. https://arca.live/e/${pID} 에서 '데이터 수집하기'나 댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`
+      );
     }
 
     anchor.append(imgElement);
@@ -163,7 +173,8 @@ async function conListup() {
     댓글창의 '아카콘 목록 저장' 버튼을 눌러주세요.`;
   } else {
     for (const pId of state.customSort) {
-      if (pId in state.packageList && state.packageList[pId].visible) await showConPackage(pId, state.packageList[pId].title);
+      if (pId in state.packageList && state.packageList[pId].visible)
+        await showConPackage(pId, state.packageList[pId].title);
     }
 
     new ScrollSpy('nav', {
@@ -213,7 +224,6 @@ document.getElementById('listModify').addEventListener('click', () => {
   browser.tabs.update({ url: 'https://arca.live/settings/emoticons' });
 });
 
-
 // 동적 항목을 주로 다룸
 async function main() {
   // 0. 전역변수 초기화
@@ -233,11 +243,11 @@ async function main() {
   }
 
   // 릴리즈노트는 설치/업데이트때 한번만 표시됨
-  if((await browser.storage.local.get('release')).release){
+  if ((await browser.storage.local.get('release')).release) {
     await browser.storage.local.set({ release: false });
     document.getElementById('release').show();
   }
-  
+
   // 3. 콘 정렬에 맞춰 동작
   const showDataBase = document.getElementById('showData');
   state.customSort.forEach((pID) => {
@@ -248,18 +258,18 @@ async function main() {
     outmsg.addEventListener('click', () => {
       browser.tabs.update({ url: `https://arca.live/e/${pID}` });
     });
-    
+
     const box = document.createElement('sl-checkbox');
     box.name = 'package';
     box.value = pID;
     box.innerHTML = state.packageList[pID].packageName + '  ';
-    
+
     const li = document.createElement('li');
     li.append(box);
     li.append(outmsg);
-    
+
     document.getElementById('downloadBox').append(li);
-    
+
     // 3.2 아카콘관리-아카콘 숨기기/보이기
     const showTargetLi = document.createElement('li');
     const showTarget = document.createElement('sl-switch');
@@ -269,7 +279,7 @@ async function main() {
     showTargetLi.append(showTarget);
     showDataBase.append(showTargetLi);
   });
-  
+
   // 4. 콘 삭제목록(보이는,가려진 + 사용불가능한)
   const deleteForm = document.getElementById('delete-data');
   state.customSort.forEach((pID) => {
@@ -280,8 +290,7 @@ async function main() {
     box.setAttribute('name', pID);
     deleteForm.append(li);
   });
-  
-  
+
   // 5. 데이터 완료후 메뉴접근 활성화
   browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'popupSettingMessage') {
@@ -338,7 +347,6 @@ async function main() {
       `;
       conListup();
     }
-
   });
 
   document.querySelector('form#tagInput sl-input').focus();

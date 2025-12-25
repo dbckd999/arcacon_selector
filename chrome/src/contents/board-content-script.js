@@ -148,7 +148,8 @@ async function saveArcacons() {
     return;
   } else {
     // 기존 모든 콘 정보
-    const origin = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? {};
+    const origin =
+      (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? {};
     // 원본 데이터는 우선 visible: false로. 새로운값은 true로 덮어쓰기됨
     for (const key in origin) {
       origin[key].visible = false;
@@ -163,16 +164,21 @@ async function saveArcacons() {
         packageName: el.getAttribute('data-package-name'),
         title: el.getAttribute('title'),
         // visible은 기존값을 가져온다.
-        visible: (Number(el.getAttribute('data-package-id')) in originKeys) ? origin[Number(el.getAttribute('data-package-id'))].visible : true,
-        available: true
+        visible:
+          Number(el.getAttribute('data-package-id')) in originKeys
+            ? origin[Number(el.getAttribute('data-package-id'))].visible
+            : true,
+        available: true,
       };
     });
-    await chrome.storage.local.set({ arcacon_package: Object.assign(origin, res) });
+    await chrome.storage.local.set({
+      arcacon_package: Object.assign(origin, res),
+    });
 
     const enabledList = gc.map((e) => {
       return Number(e.getAttribute('data-package-id'));
     });
-    
+
     // 표시 순서전용
     await chrome.storage.local.set({ arcacon_enabled: enabledList });
 

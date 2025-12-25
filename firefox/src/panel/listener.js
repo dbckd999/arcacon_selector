@@ -18,7 +18,8 @@ function addCombocon(groupId, conId, thumbnail) {
 // 패키지 목록 json파일화, zip파일로 다운로드.
 async function downloadTags(packageIds) {
   packageIds = packageIds.map(Number);
-  const heads = (await browser.storage.local.get('arcacon_package')).arcacon_package || {};
+  const heads =
+    (await browser.storage.local.get('arcacon_package')).arcacon_package || {};
 
   const promises = packageIds.map(async (pID) => {
     const headInfo = (await db.package_info.get(pID)) || {};
@@ -44,7 +45,8 @@ async function downloadTags(packageIds) {
 
   const z = JSZip();
   const yymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const packageInfo = (await browser.storage.local.get('arcacon_package')).arcacon_package || {};
+  const packageInfo =
+    (await browser.storage.local.get('arcacon_package')).arcacon_package || {};
   for (const packageId of packageIds) {
     const value = done[packageId];
     if (!value) continue;
@@ -53,7 +55,7 @@ async function downloadTags(packageIds) {
     z.file(`${packageInfo[packageId].packageName}(${packageId}).json`, content);
   }
 
-  const file = await z.generateAsync({ type: "blob" });
+  const file = await z.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(file);
 
   try {
@@ -78,7 +80,9 @@ const conHeaders = document.getElementById('conHeaders');
 const recordCombocon = document.getElementById('recordCombocon');
 const advencedSearchBtn = document.getElementById('advSearch');
 const nomalSearch = document.getElementById('nomalSearch');
-const searchConWrap = document.querySelector('div#searchResult div.images-container');
+const searchConWrap = document.querySelector(
+  'div#searchResult div.images-container'
+);
 const releaseLink = document.getElementById('releaseLink');
 const release = document.getElementById('release');
 const syncToLocal = document.getElementById('syncToLocal');
@@ -87,19 +91,21 @@ const syncToLocal = document.getElementById('syncToLocal');
 isShow.addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = serialize(e.target);
-  try{
-  // 검색결과와 연동
-  const option = (await browser.storage.local.get('arcacon_setting')).arcacon_setting;
-  option.syncSearch = (data.syncSearch === 'on');
-  browser.storage.local.set({ arcacon_setting: option });
-  
-  const pOption = (await browser.storage.local.get('arcacon_package')).arcacon_package;
-  Object.keys(pOption).forEach((pID) => {
-    pOption[pID].visible = (data[pID] === 'on');
-  });
-  browser.storage.local.set({ arcacon_package: pOption });
-  
-  browser.runtime.sendMessage({ action: 'indexUpdate' });
+  try {
+    // 검색결과와 연동
+    const option = (await browser.storage.local.get('arcacon_setting'))
+      .arcacon_setting;
+    option.syncSearch = data.syncSearch === 'on';
+    browser.storage.local.set({ arcacon_setting: option });
+
+    const pOption = (await browser.storage.local.get('arcacon_package'))
+      .arcacon_package;
+    Object.keys(pOption).forEach((pID) => {
+      pOption[pID].visible = data[pID] === 'on';
+    });
+    browser.storage.local.set({ arcacon_package: pOption });
+
+    browser.runtime.sendMessage({ action: 'indexUpdate' });
   } catch (e) {
     console.error(e);
   }
@@ -122,7 +128,7 @@ deleteForm.addEventListener('submit', async (e) => {
     // 정렬된 목록에서 삭제
     state.customSort.splice(state.customSort.indexOf(id), 1);
   });
-  
+
   // 삭제 완료된 데이터 저장
   browser.storage.local.set({ arcacon_package: state.packageList });
   browser.storage.local.set({ arcacon_enabled: state.customSort });
@@ -208,21 +214,21 @@ conHeaders.addEventListener('click', (e) => {
 
 // 콤보콘 게시
 recordCombocon.addEventListener('click', async () => {
-    conReady = false;
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    const { status } = await browser.tabs.sendMessage(tab.id, {
-      action: 'recordCombocon',
-      data: state.conPackage,
-    });
-    if (status === 'ok') {
-      conReady = true;
-    } else {
-      notify(status, 'danger');
-    }
-    document.getElementById('comboCon').click();
+  conReady = false;
+  const [tab] = await browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+  const { status } = await browser.tabs.sendMessage(tab.id, {
+    action: 'recordCombocon',
+    data: state.conPackage,
+  });
+  if (status === 'ok') {
+    conReady = true;
+  } else {
+    notify(status, 'danger');
+  }
+  document.getElementById('comboCon').click();
 });
 
 // 아카콘 클릭
@@ -278,12 +284,14 @@ conWrap.addEventListener('contextmenu', async (e) => {
   // 클릭된 요소가 .thumbnail인지 확인
   const thumbnail = e.target.closest('.thumbnail');
   const tooltip = e.target.closest('sl-tooltip');
-  
-  if(thumbnail){
+
+  if (thumbnail) {
     e.preventDefault();
 
-    const data = await db.emoticon.get(Number(thumbnail.getAttribute('data-id')));
-    if(data.video){
+    const data = await db.emoticon.get(
+      Number(thumbnail.getAttribute('data-id'))
+    );
+    if (data.video) {
       thumbnail.hidden = true;
       const video = document.createElement('video');
       video.src = URL.createObjectURL(data.video);
@@ -298,7 +306,10 @@ conWrap.addEventListener('contextmenu', async (e) => {
     tooltip.open = true;
     setTimeout(() => {
       thumbnail.hidden = false;
-      if(data.video) tooltip.querySelector('div.media').removeChild(tooltip.querySelector('video'));
+      if (data.video)
+        tooltip
+          .querySelector('div.media')
+          .removeChild(tooltip.querySelector('video'));
       tooltip.open = false;
     }, 3000);
   }
@@ -308,9 +319,9 @@ conWrap.addEventListener('contextmenu', async (e) => {
 searchConWrap.addEventListener('click', async (e) => {
   const thumbnail = e.target.closest('.thumbnail');
 
-  if(thumbnail){
+  if (thumbnail) {
     const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
-    const { packageId:groupId } = await db.emoticon.get(Number(conId));
+    const { packageId: groupId } = await db.emoticon.get(Number(conId));
 
     // 썸네일 이미지 클릭 시
     if (conReady && isCombo) {
@@ -352,11 +363,13 @@ searchConWrap.addEventListener('contextmenu', async (e) => {
 
   const thumbnail = e.target.closest('.thumbnail');
 
-  if(thumbnail){
+  if (thumbnail) {
     const conId = thumbnail ? thumbnail.getAttribute('data-id') : null;
-    const searchOrigin = document.querySelector('div#conWrap div.images-container img[data-id=\''+conId+'\']');
+    const searchOrigin = document.querySelector(
+      "div#conWrap div.images-container img[data-id='" + conId + "']"
+    );
     searchOrigin.scrollIntoView({ block: 'center' });
-    
+
     searchOrigin.classList.remove('flash-border');
     void searchOrigin.offsetWidth;
     searchOrigin.classList.add('flash-border');
@@ -376,16 +389,20 @@ nomalSearch.addEventListener('click', () => {
 });
 
 // 고급 검색결과 제출
-document.getElementById('acvenceTag').addEventListener('submit', async e=>{
+document.getElementById('acvenceTag').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const searchResultEl = document.querySelector('div#searchResult div.images-container');
+  const searchResultEl = document.querySelector(
+    'div#searchResult div.images-container'
+  );
   searchResultEl.innerHTML = '';
 
   const data = serialize(e.target);
-  if(data.tag){
-    const { status, data:conIDs } = 
-      await browser.runtime.sendMessage({ action: 'advencedSearch', data: data.tag});
-    if(status === 'ok'){
+  if (data.tag) {
+    const { status, data: conIDs } = await browser.runtime.sendMessage({
+      action: 'advencedSearch',
+      data: data.tag,
+    });
+    if (status === 'ok') {
       db.emoticon.bulkGet(conIDs).then((cons) => {
         cons.forEach((con) => {
           const thumbnail = document.createElement('img');
@@ -401,13 +418,21 @@ document.getElementById('acvenceTag').addEventListener('submit', async e=>{
 });
 
 syncToLocal.addEventListener('click', async () => {
-  const data = await browser.storage.sync.get(['arcacon_package', 'arcacon_enabled', 'arcacon_setting']);
-  const setting = (await browser.storage.local.get(['arcacon_setting'])).arcacon_setting;
+  const data = await browser.storage.sync.get([
+    'arcacon_package',
+    'arcacon_enabled',
+    'arcacon_setting',
+  ]);
+  const setting = (await browser.storage.local.get(['arcacon_setting']))
+    .arcacon_setting;
 
   try {
-    if (setting.syncArcacons) browser.storage.local.set({ arcacon_package: data.arcacon_package });
-    if (setting.syncArcacons) browser.storage.local.set({ arcacon_enabled: data.arcacon_enabled });
-    if (setting.syncSetting) browser.storage.local.set({ arcacon_setting: data.arcacon_setting });
+    if (setting.syncArcacons)
+      browser.storage.local.set({ arcacon_package: data.arcacon_package });
+    if (setting.syncArcacons)
+      browser.storage.local.set({ arcacon_enabled: data.arcacon_enabled });
+    if (setting.syncSetting)
+      browser.storage.local.set({ arcacon_setting: data.arcacon_setting });
   } catch (e) {
     notify(e, 'danger');
   }
@@ -415,7 +440,9 @@ syncToLocal.addEventListener('click', async () => {
 });
 
 // 설정이 켜질때 로컬값이 계정과 바로 연동
-const syncSetting = document.querySelector('sl-switch[data-setting=syncSetting]');
+const syncSetting = document.querySelector(
+  'sl-switch[data-setting=syncSetting]'
+);
 syncSetting.addEventListener('sl-change', async (e) => {
   await e.target.updateComplete;
   // 더미데이터로 onChanged이벤트 발생
@@ -423,7 +450,9 @@ syncSetting.addEventListener('sl-change', async (e) => {
 });
 
 // 설정이 켜질때 로컬값이 계정과 바로 연동
-const syncArcacons = document.querySelector('sl-switch[data-setting=syncArcacons]');
+const syncArcacons = document.querySelector(
+  'sl-switch[data-setting=syncArcacons]'
+);
 syncArcacons.addEventListener('sl-change', async (e) => {
   await e.target.updateComplete;
   // 더미데이터로 onChanged이벤트 발생
@@ -431,17 +460,19 @@ syncArcacons.addEventListener('sl-change', async (e) => {
 });
 
 // 릴리즈노트 다이얼로그창
-releaseLink.addEventListener('click', () => { release.show(); });
+releaseLink.addEventListener('click', () => {
+  release.show();
+});
 
 const drawer = document.querySelector('.drawer');
 const openButton = document.getElementById('searchHelp');
 openButton.addEventListener('click', () => (drawer.open = !drawer.open));
 
-const links = document.getElementsByClassName("newtab");
+const links = document.getElementsByClassName('newtab');
 for (let el of links) {
-  el.addEventListener("click", (e) => {
+  el.addEventListener('click', (e) => {
     e.preventDefault();
-    const url = el.getAttribute("href");
+    const url = el.getAttribute('href');
     browser.tabs.create({ url });
   });
 }

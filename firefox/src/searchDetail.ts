@@ -13,7 +13,9 @@ if (!searchResult) {
 
 const searchManage = new ArcaconTagSearch(searchResult);
 searchResult.addEventListener('onSearch', async (event: Event) => {
-  const searchResultEl = document.querySelector('#searchResult .images-container');
+  const searchResultEl = document.querySelector(
+    '#searchResult .images-container'
+  );
   const e = event as CustomEvent<number[]>;
   if (searchResult) {
     searchResultEl.innerHTML = '';
@@ -66,10 +68,10 @@ tagInputForm.addEventListener('submit', (e: SubmitEvent) => {
 
   const tagInputValues = formData.tag.split(' ').filter((t) => t.length > 0); // tagInput 대신 tagInputValues로 변수명 변경 및 빈 문자열 필터링
   if (tagInputValues.length === 0) return;
-  
+
   const slInput = form.querySelector<HTMLInputElement>('sl-input');
   if (slInput) slInput.value = '';
-  
+
   // 배열(또는 길이가1인) 순회, 태그 추가
   tagInputValues.forEach((t) => {
     searchManage.add(t);

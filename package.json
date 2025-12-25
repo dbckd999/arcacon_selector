@@ -8,7 +8,7 @@
     "build": "webpack --mode=production --config config/webpack.config.js --env target=chrome && node pack.js --target=chrome",
     "watchf": "webpack --mode=development --config config/webpack.config.js --env target=firefox",
     "buildf": "webpack --mode=production --config config/webpack.config.js --env target=firefox && node pack.js --target=firefox",
-    "format": "prettier --write \"{config,public,src}/**/*.{html,css,js,ts,json}\"",
+    "format": "prettier --write \"{config,public,chrome/src,firefox/src}/**/*.{html,css,js,ts,json}\"",
     "firefox": "web-ext run --devtools --source-dir=firefox/build",
     "chrome": "web-ext run --devtools --source-dir=chrome/build --target=chromium"
   },

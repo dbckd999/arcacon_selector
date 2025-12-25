@@ -1,7 +1,7 @@
 import db from '../database';
 import Fuse from 'fuse.js';
 
-interface searchEntry{
+interface searchEntry {
   conId: number;
   flat: string;
 }
@@ -10,16 +10,11 @@ interface searchEntry{
 export let fuse: Fuse<any> | null = null;
 indexing();
 
-function buildFlatSearchText(
-  obj: any,
-  keys: string[],
-  commonTags: string[]
-){
+function buildFlatSearchText(obj: any, keys: string[], commonTags: string[]) {
   const set = new Set(commonTags);
-  keys.forEach((k:string) => (obj[k] || []).forEach((v:any) => set.add(v)));
-  return Array.from(set).sort().join(" ");
+  keys.forEach((k: string) => (obj[k] || []).forEach((v: any) => set.add(v)));
+  return Array.from(set).sort().join(' ');
 }
-
 
 export async function updateIndex() {
   const packagesData = await db.package_info.toArray();
@@ -27,10 +22,12 @@ export async function updateIndex() {
   for (const head of packagesData) {
     heads[head.packageId] = head.tags;
   }
-  
-  const appSetting = (await chrome.storage.local.get('arcacon_setting')).arcacon_setting ?? [];
-  const packageList = (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
-  
+
+  const appSetting =
+    (await chrome.storage.local.get('arcacon_setting')).arcacon_setting ?? [];
+  const packageList =
+    (await chrome.storage.local.get('arcacon_package')).arcacon_package ?? [];
+
   const emoticons = await db.emoticon.toArray();
   const indexMap: searchEntry[] = [];
   emoticons.forEach((emoticon) => {
@@ -39,18 +36,19 @@ export async function updateIndex() {
     const noHead = !heads[pID];
     const noTags = !emoticon.tags;
 
-    const needEmpty =
-      isHiddenPkg ||
-      (noHead && noTags) ||
-      noTags;
+    const needEmpty = isHiddenPkg || (noHead && noTags) || noTags;
 
     indexMap.push(
       needEmpty
         ? { conId: emoticon.conId, flat: '' }
         : {
-          conId: emoticon.conId,
-          flat: buildFlatSearchText(emoticon, ['tags', 'chosung'], heads[pID]),
-        }
+            conId: emoticon.conId,
+            flat: buildFlatSearchText(
+              emoticon,
+              ['tags', 'chosung'],
+              heads[pID]
+            ),
+          }
     );
   });
   const index = Fuse.createIndex(['flat'], indexMap).toJSON();
@@ -68,6 +66,6 @@ export async function indexing() {
   let savedIndex = (await db.search_index.get(1)) || {};
   if (!savedIndex || !savedIndex.data) savedIndex.data = await updateIndex();
   let index = Fuse.parseIndex(savedIndex.data);
-  
+
   fuse = new Fuse(emoticons, fuseOption, index);
 }

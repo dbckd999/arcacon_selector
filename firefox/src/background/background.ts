@@ -16,13 +16,21 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const updateIDs = Object.keys(data).map(Number);
         const updateCons = await db.emoticon.bulkGet(updateIDs);
         if (!updateCons[0]) {
-          sendResponse({ status: 'ok', message: '아카콘을 먼저 다운받아 주세요.' });
+          sendResponse({
+            status: 'ok',
+            message: '아카콘을 먼저 다운받아 주세요.',
+          });
           break;
         }
-        const newTags = updateCons.map(item => Object.assign(item, data[item.conId]));
+        const newTags = updateCons.map((item) =>
+          Object.assign(item, data[item.conId])
+        );
 
-        const packageHaad = await db.package_info.get(packageId) || {};
-        const newHeadTags = Object.assign(packageHaad, { packageId: packageId, tags: msg.head });
+        const packageHaad = (await db.package_info.get(packageId)) || {};
+        const newHeadTags = Object.assign(packageHaad, {
+          packageId: packageId,
+          tags: msg.head,
+        });
         try {
           await db.emoticon.bulkPut(newTags);
           await db.package_info.put(newHeadTags);
@@ -84,20 +92,17 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // 헤드 이미지, 패키지 이름
         // 패키지, 헤드 데이터를 갱신
         const { head } = msg;
-        browser.storage.local.get('arcacon_package')
-          .then(loc => {
-            loc = loc.arcacon_package || {};
-            const target = Object.assign(loc[head.packageId],
-              {
-                available: true,
-                title: head.title,
-                packageName: head.title,
-                visible: true,
-              }
-            );
-            loc[head.packageId] = target;
-            browser.storage.local.set({ arcacon_package: loc });
+        browser.storage.local.get('arcacon_package').then((loc) => {
+          loc = loc.arcacon_package || {};
+          const target = Object.assign(loc[head.packageId], {
+            available: true,
+            title: head.title,
+            packageName: head.title,
+            visible: true,
           });
+          loc[head.packageId] = target;
+          browser.storage.local.set({ arcacon_package: loc });
+        });
 
         const downloadQueue = data.map(async (el: any) => ({
           conId: el.conId,
@@ -138,7 +143,9 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ status: 'ok', message: '인덱싱중입니다' });
         } else {
           const conIds: number[] = [];
-          let searchResult = fuse.search(data.map((e: string) => `'${e}`).join(' '));
+          let searchResult = fuse.search(
+            data.map((e: string) => `'${e}`).join(' ')
+          );
           searchResult.forEach((dict) => {
             conIds.push(dict.item.conId);
           });
@@ -220,10 +227,14 @@ browser.runtime.onInstalled.addListener(() => {
       browser.storage.local.set({ arcacon_setting: setting });
     });
   });
-  browser.storage.sync.get(['arcacon_package', 'arcacon_enabled']).then((res) => {
-    if (res.arcacon_package) browser.storage.local.set({ arcacon_package: res.arcacon_package });
-    if (res.arcacon_enabled) browser.storage.local.set({ arcacon_enabled: res.arcacon_enabled });
-  });
+  browser.storage.sync
+    .get(['arcacon_package', 'arcacon_enabled'])
+    .then((res) => {
+      if (res.arcacon_package)
+        browser.storage.local.set({ arcacon_package: res.arcacon_package });
+      if (res.arcacon_enabled)
+        browser.storage.local.set({ arcacon_enabled: res.arcacon_enabled });
+    });
 
   // 최초설치 및 버전 변경시 릴리즈노트 표시
   browser.storage.local.set({ release: true });
@@ -258,34 +269,39 @@ browser.runtime.onConnect.addListener((port) => {
 // 컨텍스트 메뉴 클릭 이벤트 리스너
 browser.contextMenus.onClicked.addListener((info, tab) => {
   // 팝업창설정, 아카콘설정
-  if (info.menuItemId === 'popupSetting') browser.runtime.sendMessage({ action: 'popupSettingMessage' });
-  if (info.menuItemId === 'arcaconSetting') browser.runtime.sendMessage({ action: 'arcaconSettingMessage' });
+  if (info.menuItemId === 'popupSetting')
+    browser.runtime.sendMessage({ action: 'popupSettingMessage' });
+  if (info.menuItemId === 'arcaconSetting')
+    browser.runtime.sendMessage({ action: 'arcaconSettingMessage' });
 });
 
 browser.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'local') {
-    browser.storage.local.get('arcacon_setting')
-      .then((data) => {
-        // 초기에는 비동기로 값을 초기화해 없음
-        const setting = data.arcacon_setting || { syncSetting: true, syncArcacons: true };
+    browser.storage.local.get('arcacon_setting').then((data) => {
+      // 초기에는 비동기로 값을 초기화해 없음
+      const setting = data.arcacon_setting || {
+        syncSetting: true,
+        syncArcacons: true,
+      };
 
-        interface SyncRules { [key: string]: boolean }
-        const syncRules: SyncRules = {
-          // 변경된 데이터가 들어오면: 키에대한 설정값을 사용합니다.
-          arcacon_setting: setting.syncSetting,
-          arcacon_package: setting.syncArcacons,
-          arcacon_enabled: setting.syncArcacons,
-        };
+      interface SyncRules {
+        [key: string]: boolean;
+      }
+      const syncRules: SyncRules = {
+        // 변경된 데이터가 들어오면: 키에대한 설정값을 사용합니다.
+        arcacon_setting: setting.syncSetting,
+        arcacon_package: setting.syncArcacons,
+        arcacon_enabled: setting.syncArcacons,
+      };
 
-        const payload: any = {};
+      const payload: any = {};
 
-        // changes 순회
-        for (const key of Object.keys(changes)) {
-          if (syncRules[key]) payload[key] = changes[key].newValue;
-        }
+      // changes 순회
+      for (const key of Object.keys(changes)) {
+        if (syncRules[key]) payload[key] = changes[key].newValue;
+      }
 
-        if (Object.keys(payload).length) browser.storage.sync.set(payload);
-
-      });
+      if (Object.keys(payload).length) browser.storage.sync.set(payload);
+    });
   }
 });

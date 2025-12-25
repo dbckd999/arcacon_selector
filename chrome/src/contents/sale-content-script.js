@@ -2,14 +2,18 @@
 
 import '../../../public/css/conMod.css';
 
-const arcacons = (await chrome.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
-const packageId = Number(new URL(window.location.href).pathname.replace('/e/', ''));
+const arcacons =
+  (await chrome.storage.local.get('arcacon_enabled')).arcacon_enabled ?? [];
+const packageId = Number(
+  new URL(window.location.href).pathname.replace('/e/', '')
+);
 
 // 테그 전송
 function createTagFromElement() {
   // 입력 양식 설명
   const info = document.createElement('span');
-  info.innerHTML = "태그의 최대길이는 20자이며, 각 이모티콘당 5개의 태그를 입력할 수 있습니다. 공백/빈칸인 태그는 무시됩니다.<br>공통 태그를 제외한 이모티콘은 검색을 위해 초성으로 추가로 변환되어 저장됩니다.";
+  info.innerHTML =
+    '태그의 최대길이는 20자이며, 각 이모티콘당 5개의 태그를 입력할 수 있습니다. 공백/빈칸인 태그는 무시됩니다.<br>공통 태그를 제외한 이모티콘은 검색을 위해 초성으로 추가로 변환되어 저장됩니다.';
   document.querySelector('div.article-body.emoticon-body form').before(info);
 
   const wrapper = document.querySelector('div.emoticons-wrapper');
@@ -64,8 +68,7 @@ function createTagFromElement() {
     const mapped = {};
     console.log('json형태로 변환된 form데이터', jsonData);
     for (const key of Object.keys(jsonData)) {
-      mapped[Number(key)] = 
-      {
+      mapped[Number(key)] = {
         packageId,
         tags: Array.from(jsonData[key]['tags']),
         chosung: Array.from(jsonData[key]['chosung']),
@@ -129,7 +132,7 @@ function createCollectElement() {
     const head = {
       packageId,
       title: document.querySelector('meta[name=title]').getAttribute('content'),
-    }
+    };
 
     chrome.runtime
       .sendMessage({
@@ -184,7 +187,7 @@ function createTagInput(dataId, tag) {
   inputEl.className = 'testi';
   inputEl.value = tag;
   inputEl.name = `emoticon[${dataId}][]`;
-  inputEl.maxlength="20"
+  inputEl.maxlength = '20';
   return inputEl;
 }
 
@@ -230,7 +233,7 @@ function getChosung(str) {
 
 const tagCounts = {};
 // 목록에 있는 패키지일때
-if(arcacons.includes(Number(packageId))){
+if (arcacons.includes(Number(packageId))) {
   createTagFromElement();
   createCollectElement();
   createHeadTagElement();
@@ -300,9 +303,9 @@ if(arcacons.includes(Number(packageId))){
       const dataId = conWrapper
         .querySelector('.emoticon')
         .getAttribute('data-id');
-      
-      if(tagCounts[dataId] === undefined) tagCounts[dataId] = 0;
-      if(tagCounts[dataId] >= 5){
+
+      if (tagCounts[dataId] === undefined) tagCounts[dataId] = 0;
+      if (tagCounts[dataId] >= 5) {
         alert('5개까지만 가능합니다.');
         return;
       }

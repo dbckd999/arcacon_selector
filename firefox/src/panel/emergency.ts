@@ -6,7 +6,8 @@ import * as JSZip from 'jszip';
 // 패키지 목록 json파일화, zip파일로 다운로드.
 async function downloadTags(packageIds: string[] | number[]) {
   packageIds = packageIds.map(Number);
-  const heads = (await browser.storage.local.get('arcacon_package')).arcacon_package || {};
+  const heads =
+    (await browser.storage.local.get('arcacon_package')).arcacon_package || {};
 
   const promises = packageIds.map(async (pID) => {
     const headInfo = await db.package_info.get(pID);
@@ -41,7 +42,7 @@ async function downloadTags(packageIds: string[] | number[]) {
     z.file(`${packageId}-${yymmdd}.json`, content);
   }
 
-  const file = await z.generateAsync({ type: "blob" });
+  const file = await z.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(file);
 
   try {
@@ -55,10 +56,9 @@ async function downloadTags(packageIds: string[] | number[]) {
   }
 }
 
-document.getElementById('emergency').addEventListener('click', e => {
-    browser.storage.local.get('arcacon_package')
-    .then(data => {
-        data = data.arcacon_package;
-        downloadTags(Object.keys(data));
-    })
+document.getElementById('emergency').addEventListener('click', (e) => {
+  browser.storage.local.get('arcacon_package').then((data) => {
+    data = data.arcacon_package;
+    downloadTags(Object.keys(data));
+  });
 });

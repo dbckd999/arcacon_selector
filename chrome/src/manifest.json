@@ -19,16 +19,8 @@
   "action": {
     "default_title": "Arcacon_selector"
   },
-  "permissions": [
-    "tabs",
-    "storage",
-    "sidePanel",
-    "downloads",
-    "contextMenus"
-  ],
-  "host_permissions": [
-    "https://ac-p1.namu.la/"
-  ],
+  "permissions": ["tabs", "storage", "sidePanel", "downloads", "contextMenus"],
+  "host_permissions": ["https://ac-p1.namu.la/"],
   "content_scripts": [
     {
       "matches": ["https://arca.live/b/*/*"],

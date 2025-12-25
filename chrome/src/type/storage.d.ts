@@ -3,11 +3,13 @@ export declare interface Setting {
   syncArcacons: boolean;
 }
 
-export declare interface ArcaconHead{
-  available: boolean,
-  packageName: string,
-  title: string,
-  visible: boolean
+export declare interface ArcaconHead {
+  available: boolean;
+  packageName: string;
+  title: string;
+  visible: boolean;
 }
 
-export declare interface ArcaconPackage { [key: number]: boolean }
+export declare interface ArcaconPackage {
+  [key: number]: boolean;
+}

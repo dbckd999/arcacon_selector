@@ -19,8 +19,7 @@ orderApplyBtn.addEventListener('click', () => {
   });
 
   // 패키지데이터 갱신
-  chrome.storage.local.get('arcacon_package')
-  .then((res) => {
+  chrome.storage.local.get('arcacon_package').then((res) => {
     const origin = res.arcacon_package || {};
 
     Object.keys(origin).forEach((key) => {
@@ -31,15 +30,14 @@ orderApplyBtn.addEventListener('click', () => {
         origin[enable].available = true;
       } else {
         origin[enable] = {
-          packageName: '데이터 없음(ID:'+String(enable)+')',
-          title: '데이터 없음(ID:'+String(enable)+')',
+          packageName: '데이터 없음(ID:' + String(enable) + ')',
+          title: '데이터 없음(ID:' + String(enable) + ')',
           visible: true,
           available: true,
         };
       }
     });
 
-    chrome.storage.local.set({'arcacon_package': origin });
+    chrome.storage.local.set({ arcacon_package: origin });
   });
-    
 });

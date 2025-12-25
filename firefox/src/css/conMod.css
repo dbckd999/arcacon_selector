@@ -23,6 +23,6 @@
   display: none !important;
 }
 
-.testi:invalid{
+.testi:invalid {
   background-color: lightpink;
 }
