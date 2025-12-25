@@ -15,7 +15,7 @@ const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
 const common = (env, argv) => {
   const target = env.target; // chrome | firefox
   if (!target) throw new Error('env.target required');
-  
+
   return {
     output: {
       // the build folder to output bundles and assets in.
@@ -71,7 +71,7 @@ const common = (env, argv) => {
           {
             from: path.resolve(__dirname, '..', target, 'src/manifest.json'),
             to: 'manifest.json',
-          }
+          },
         ],
       }),
       // Extract CSS into separate files
@@ -80,6 +80,6 @@ const common = (env, argv) => {
       }),
     ],
   };
-}
+};
 
 module.exports = common;

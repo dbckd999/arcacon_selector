@@ -13,7 +13,9 @@ const config = (env, argv) => {
   if (!target) throw new Error('env.target required');
 
   // Windows 경로(\)를 glob이 인식할 수 있도록 /로 변경합니다.
-  const srcPath = path.resolve(__dirname, '..', target, 'src').replace(/\\/g, '/');
+  const srcPath = path
+    .resolve(__dirname, '..', target, 'src')
+    .replace(/\\/g, '/');
   const entries = glob
     .sync(`${srcPath}/**/*.{js,ts}`, {
       ignore: `${srcPath}/**/*.d.ts`,
