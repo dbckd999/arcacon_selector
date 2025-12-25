@@ -2,7 +2,7 @@ import db, { IEmoticon, IPackageInfo } from '../database';
 import { downloadResource } from '../util/download';
 import { fuse, indexing, updateIndex } from './searchBackend';
 import type { Setting, ArcaconPackage } from '../type/storage';
-
+ 
 
 // 백그라운드 onMessage 리스너
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
