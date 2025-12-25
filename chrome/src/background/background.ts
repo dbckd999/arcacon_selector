@@ -1,10 +1,8 @@
 import db, { IEmoticon, IPackageInfo } from '../database';
 import { downloadResource } from '../util/download';
 import { fuse, indexing, updateIndex } from './searchBackend';
+import type { Setting, ArcaconPackage } from '../type/storage';
 
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
 
 // 백그라운드 onMessage 리스너
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -84,9 +82,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // 헤드 이미지, 패키지 이름
         // 패키지, 헤드 데이터를 갱신
         const { head } = msg;
-        chrome.storage.local.get('arcacon_package')
-        .then(loc => {
-          loc = loc.arcacon_package || {};
+        Browser.storage.local.get('arcacon_package')
+        .then(r => {
+          const loc = r.arcacon_package as ArcaconPackage;
           const target = Object.assign(loc[head.packageId], 
             {
               available: true,
@@ -96,7 +94,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             }
           );
           loc[head.packageId] = target;
-          chrome.storage.local.set({ arcacon_package: loc });
+          Browser.storage.local.set({ arcacon_package: loc });
         });
         
         const downloadQueue = data.map(async (el: any) => ({
@@ -200,10 +198,10 @@ chrome.runtime.onInstalled.addListener(() => {
     syncArcacons?: boolean;
   }
   // 설정 기본값
-  chrome.storage.local.get('arcacon_setting').then((res) => {
+  Browser.storage.local.get('arcacon_setting').then((res) => {
     let setting: Setting = res.arcacon_setting || {};
 
-    chrome.storage.sync.get('arcacon_setting').then((res) => {
+    Browser.storage.sync.get('arcacon_setting').then((res) => {
       let syncSetting: Setting = res.arcacon_setting || {};
 
       if(Object.keys(syncSetting).length > 0){
@@ -218,17 +216,17 @@ chrome.runtime.onInstalled.addListener(() => {
         if (!('syncArcacons' in setting)) setting.syncArcacons = true;
       }
 
-      chrome.storage.local.set({ arcacon_setting: setting });
+      Browser.storage.local.set({ arcacon_setting: setting });
     });
   });
 
-  chrome.storage.sync.get(['arcacon_package', 'arcacon_enabled']).then((res) => {
-    if(res.arcacon_package) chrome.storage.local.set({arcacon_package:res.arcacon_package});
-    if(res.arcacon_enabled) chrome.storage.local.set({arcacon_enabled:res.arcacon_enabled});
+  Browser.storage.sync.get(['arcacon_package', 'arcacon_enabled']).then((res) => {
+    if(res.arcacon_package) Browser.storage.local.set({arcacon_package:res.arcacon_package});
+    if(res.arcacon_enabled) Browser.storage.local.set({arcacon_enabled:res.arcacon_enabled});
   });
 
   // 최초설치 및 버전 변경시 릴리즈노트 표시
-  chrome.storage.local.set({ release: true });
+  Browser.storage.local.set({ release: true });
 });
 
 // background.js
@@ -264,14 +262,23 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'arcaconSetting') chrome.runtime.sendMessage({ action: 'arcaconSettingMessage' });
 });
 
-chrome.storage.onChanged.addListener((changes, areaName) => {
+Browser.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'local') {
-    chrome.storage.local.get('arcacon_setting')
+    Browser.storage.local.get('arcacon_setting')
       .then((data) => {
+        interface Setting {
+          syncSetting?: boolean;
+          syncArcacons?: boolean;
+        }
         // 초기에는 비동기로 값을 초기화해 없음
-        const setting = data.arcacon_setting || {syncSetting: true, syncArcacons: true};
+        const setting: Setting = data.arcacon_setting || {syncSetting: true, syncArcacons: true};
 
-        interface SyncRules { [key: string]: boolean }
+        interface SyncRules {
+          [key: string]: boolean | undefined;
+          arcacon_setting: boolean | undefined;
+          arcacon_package: boolean | undefined;
+          arcacon_enabled: boolean | undefined;
+        }
         const syncRules:SyncRules = {
           // 변경된 데이터가 들어오면: 키에대한 설정값을 사용합니다.
           arcacon_setting: setting.syncSetting,
@@ -286,7 +293,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
           if (syncRules[key]) payload[key] = changes[key].newValue;
         }
 
-        if (Object.keys(payload).length) chrome.storage.sync.set(payload);
+        if (Object.keys(payload).length) Browser.storage.sync.set(payload);
 
       });
   }
