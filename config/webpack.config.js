@@ -15,7 +15,9 @@ const config = (env, argv) => {
   // Windows 경로(\)를 glob이 인식할 수 있도록 /로 변경합니다.
   const srcPath = path.resolve(__dirname, '..', target, 'src').replace(/\\/g, '/');
   const entries = glob
-    .sync(`${srcPath}/**/*.{js,ts}`)
+    .sync(`${srcPath}/**/*.{js,ts}`, {
+      ignore: `${srcPath}/**/*.d.ts`,
+    })
     .reduce((acc, filePath) => {
       const entryName = path.basename(filePath, path.extname(filePath));
       acc[entryName] = filePath;
