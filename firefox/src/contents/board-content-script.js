@@ -268,6 +268,16 @@ function selectFormSelect() {
 }
 selectFormSelect();
 
+// 버튼 `새로운 댓글이 달렸습니다!`를 클릭하면 comment를 전부 다시 불러옴
+// 따라서 selectFormSelect함수를 실행해 전부 다시 실행함
+new MutationObserver(
+  (mutations) =>
+    mutations.some((m) => m.target.id === 'comment') && selectFormSelect()
+).observe(document.getElementById('comment'), {
+  childList: true,
+  subtree: true,
+});
+
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     let res = false;
