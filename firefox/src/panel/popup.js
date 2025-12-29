@@ -28,7 +28,7 @@ import '../../../public/css/popup.css';
 
 import db from '../database';
 
-import ScrollSpy from 'scrollspy-js';
+import { ScrollSpy } from '../util/customScrollspy';
 import './popupSetting';
 import '../searchDetail';
 import './jsonImport';
@@ -177,26 +177,10 @@ async function conListup() {
         await showConPackage(pId, state.packageList[pId].title);
     }
 
-    new ScrollSpy('nav', {
+    new ScrollSpy('#conWrap', {
       nav: '#conHeaders a',
+      scrollContainer: '.scrollable',
       className: 'in-view',
-      // 스크롤 시 활성화된 메뉴 아이템을 찾아 중앙으로 스크롤합니다.
-      callback: () => {
-        const activeItem = document.querySelector('#conHeaders a.in-view');
-        if (activeItem) {
-          const navContainer = document.getElementById('conHeaders');
-          const containerWidth = navContainer.offsetWidth;
-          const itemLeft = activeItem.offsetLeft;
-          const itemWidth = activeItem.offsetWidth;
-
-          const scrollLeft = itemLeft - containerWidth / 2 + itemWidth / 2;
-
-          navContainer.scrollTo({
-            left: scrollLeft,
-            behavior: 'smooth',
-          });
-        }
-      },
     });
   }
 }
@@ -234,13 +218,7 @@ async function main() {
 
   // 2. 콘 위치감지 오프셋 커스텀
   // 초기 offset 값을 계산합니다.
-  updateScrollSpyOffset();
-  // nav 요소의 크기가 변경될 때마다 offset 값을 다시 계산하도록 ResizeObserver를 설정합니다.
-  const navBar = document.querySelector('nav');
-  if (navBar) {
-    const resizeObserver = new ResizeObserver(updateScrollSpyOffset);
-    resizeObserver.observe(navBar);
-  }
+  // resize 이벤트 참조
 
   // 릴리즈노트는 설치/업데이트때 한번만 표시됨
   if ((await browser.storage.local.get('release')).release) {

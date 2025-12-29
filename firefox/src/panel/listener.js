@@ -197,19 +197,7 @@ conHeaders.addEventListener('click', (e) => {
   const targetId = href.substring(1);
   const targetElement = document.getElementById(targetId);
 
-  if (targetElement) {
-    const navBar = document.querySelector('nav');
-    const navHeight = navBar ? navBar.offsetHeight : 0;
-    // isInView에서 사용한 오프셋과 동일하게 설정
-    const offset = navHeight;
-
-    const elementPosition = targetElement.getBoundingClientRect().top;
-    const offsetPosition =
-      elementPosition + document.documentElement.scrollTop - offset;
-
-    // 계산된 위치로 부드럽게 스크롤
-    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-  }
+  targetElement.scrollIntoView({ top: targetElement, behavior: 'smooth' });
 });
 
 // 콤보콘 게시
@@ -370,9 +358,10 @@ searchConWrap.addEventListener('contextmenu', async (e) => {
     );
     searchOrigin.scrollIntoView({ block: 'center' });
 
-    searchOrigin.classList.remove('flash-border');
-    void searchOrigin.offsetWidth;
-    searchOrigin.classList.add('flash-border');
+    searchOrigin.animate(
+      [{ borderWidth: '25px' }, { borderWidth: '0px' }],
+      1000
+    );
   }
 });
 

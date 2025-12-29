@@ -1,4 +1,6 @@
+html,
 body {
+  height: 100%;
   margin: 0;
 }
 
@@ -53,6 +55,12 @@ nav > sl-divider {
   --spacing: var(--sl-spacing-2x-small);
 }
 
+div.main {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 /* popup.js에서 일부 재정의됩니다. 로딩 오류시 사용될 가능성있음. */
 #shild {
   position: fixed;
@@ -87,19 +95,7 @@ sl-tab-group {
 
 .thumbnail {
   box-sizing: border-box;
-}
-
-.flash-border {
-  animation: flash-border 2s ease-out forwards;
-}
-
-@keyframes flash-border {
-  0% {
-    border: solid red 12px;
-  }
-  100% {
-    border: solid red 0px;
-  }
+  border: 0px solid rgb(255, 197, 21);
 }
 
 sl-tooltip div.media {

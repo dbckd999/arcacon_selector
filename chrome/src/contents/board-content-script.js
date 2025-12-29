@@ -213,31 +213,32 @@ async function saveArcacons() {
 
 // 댓글/대댓글 위치 선택
 // 팝업 스크립트에서 빈 값이면 기본, 있으면 해당 id붙여서 fetch
+// 초기값 댓글창
+const button = document.createElement('button');
+button.addEventListener('click', () => {
+  document.querySelectorAll('.arcacon-focused').forEach((e) => {
+    e.classList.remove('arcacon-focused');
+  });
+  cmtSelected = '';
+});
+button.className = 'btn-namlacon con-save';
+button.type = 'button';
+button.tabIndex = 104;
+
+const icon = document.createElement('span');
+icon.className = 'ion-chatbox';
+
+const text = document.createElement('span');
+text.className = 'text';
+text.innerHTML = '&nbsp;답글 선택';
+
+button.appendChild(icon);
+button.appendChild(text);
+
+document.querySelector('div.reply-form-button-container').prepend(button);
+
 let cmtSelected = '';
 function selectFormSelect() {
-  // 초기값 댓글창
-  const button = document.createElement('button');
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.arcacon-focused').forEach((e) => {
-      e.classList.remove('arcacon-focused');
-    });
-    cmtSelected = '';
-  });
-  button.className = 'btn-namlacon con-save';
-  button.type = 'button';
-  button.tabIndex = 104;
-
-  const icon = document.createElement('span');
-  icon.className = 'ion-chatbox';
-
-  const text = document.createElement('span');
-  text.className = 'text';
-  text.innerHTML = '&nbsp;답글 선택';
-
-  button.appendChild(icon);
-  button.appendChild(text);
-
-  document.querySelector('div.reply-form-button-container').prepend(button);
 
   // 대댓글 선택을 하려면 답글 옆에 선택 버튼을 만들어 둬야한다.
   const commentRights = document.querySelectorAll('div.comment-item');

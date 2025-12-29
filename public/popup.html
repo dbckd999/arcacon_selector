@@ -236,102 +236,105 @@ GitHub 링크: <a class="newtab" href="https://github.com/dbckd999/arcacon_selec
       </p>
     </sl-drawer>
 
-    <nav>
-      <form action="#" id="tagInput">
-        <sl-input
-          name="tag"
-          class="label-on-left"
-          size="small"
-          placeholder="엔터로 입력, 스페이스바로 여러개 입력가능"
-          clearable
-          required
-          pattern=".*\S.*"
-          data-error-message="태그는 공백일 수 없습니다."
-          filled
-        >
-          <sl-icon name="search" slot="prefix"></sl-icon>
-          <sl-button type="submit" slot="suffix" style="margin: 0"
-            >추가</sl-button
-          >
-          <sl-button
-            type="button"
-            id="advSearch"
-            slot="suffix"
-            style="margin: 0"
-            >고급</sl-button
-          >
-        </sl-input>
-      </form>
-      <form id="acvenceTag" style="display: none">
-        <sl-input
-          name="tag"
-          class="label-on-left"
-          size="small"
-          placeholder="여러 태그를 한번에 입력"
-          clearable
-          required
-          filled
-        >
-          <sl-icon name="search" slot="prefix"></sl-icon>
-          <sl-button
-            id="searchHelp"
-            type="button"
-            slot="suffix"
-            style="margin: 0"
-            >도움말</sl-button
-          >
-          <sl-button
-            type="button"
-            id="nomalSearch"
-            slot="suffix"
-            style="margin: 0"
-            >일반</sl-button
-          >
-        </sl-input>
-      </form>
-
-      <div class="tags-removable">
-        <span id="removeAllTag"
-          >전부 지우기<sl-icon name="x-octagon"></sl-icon
-        ></span>
-      </div>
-
-      <sl-divider></sl-divider>
-
-      <div id="combo-container">
-        <div id="comboConWrap">
-          <!-- 사용할 콤보콘은 여기에 -->
-        </div>
-        <sl-switch id="comboCon" size="small">콤보콘</sl-switch>
-        <sl-button id="recordCombocon" disabled size="small">작성</sl-button>
-      </div>
-
-      <sl-divider></sl-divider>
-
-      <!-- 콘 대표 목록. 누르면 해당 콘으로 이동 -->
-      <div id="conHeaders" class="images-container">
-        <a href="#searchSpan">
-          <sl-avatar>
-            <sl-icon slot="icon" name="search"></sl-icon>
-          </sl-avatar>
-        </a>
-      </div>
-    </nav>
-
     <!-- popup.js에서 아카콘 스타일 정의 -->
     <style id="conStyle"></style>
+    <!-- 스크롤가능한 래퍼 -->
+    <div class="main">
+      <nav>
+        <form action="#" id="tagInput">
+          <sl-input
+            name="tag"
+            class="label-on-left"
+            size="small"
+            placeholder="엔터로 입력, 스페이스바로 여러개 입력가능"
+            clearable
+            required
+            pattern=".*\S.*"
+            data-error-message="태그는 공백일 수 없습니다."
+            filled
+          >
+            <sl-icon name="search" slot="prefix"></sl-icon>
+            <sl-button type="submit" slot="suffix" style="margin: 0"
+              >추가</sl-button
+            >
+            <sl-button
+              type="button"
+              id="advSearch"
+              slot="suffix"
+              style="margin: 0"
+              >고급</sl-button
+            >
+          </sl-input>
+        </form>
+        <form id="acvenceTag" style="display: none">
+          <sl-input
+            name="tag"
+            class="label-on-left"
+            size="small"
+            placeholder="여러 태그를 한번에 입력"
+            clearable
+            required
+            filled
+          >
+            <sl-icon name="search" slot="prefix"></sl-icon>
+            <sl-button
+              id="searchHelp"
+              type="button"
+              slot="suffix"
+              style="margin: 0"
+              >도움말</sl-button
+            >
+            <sl-button
+              type="button"
+              id="nomalSearch"
+              slot="suffix"
+              style="margin: 0"
+              >일반</sl-button
+            >
+          </sl-input>
+        </form>
 
-    <!-- 검색결과 -->
-    <div id="searchResult">
-      <span id="searchSpan">검색결과</span>
-      <br />
-      <div class="images-container"></div>
+        <div class="tags-removable">
+          <span id="removeAllTag"
+            >전부 지우기<sl-icon name="x-octagon"></sl-icon
+          ></span>
+        </div>
+
+        <sl-divider></sl-divider>
+
+        <div id="combo-container">
+          <div id="comboConWrap">
+            <!-- 사용할 콤보콘은 여기에 -->
+          </div>
+          <sl-switch id="comboCon" size="small">콤보콘</sl-switch>
+          <sl-button id="recordCombocon" disabled size="small">작성</sl-button>
+        </div>
+
+        <sl-divider></sl-divider>
+
+        <!-- 콘 대표 목록. 누르면 해당 콘으로 이동 -->
+        <div id="conHeaders" class="images-container">
+          <a href="#searchSpan">
+            <sl-avatar>
+              <sl-icon slot="icon" name="search"></sl-icon>
+            </sl-avatar>
+          </a>
+        </div>
+      </nav>
+      <!-- 검색결과 -->
+      <div class="scrollable" style="overflow: scroll">
+        <div id="searchResult">
+          <span id="searchSpan">검색결과</span>
+          <br />
+          <div class="images-container"></div>
+        </div>
+
+        <sl-divider></sl-divider>
+
+        <!-- 다운받은 아카콘들 -->
+        <div id="conWrap"></div>
+      </div>
     </div>
-
-    <sl-divider></sl-divider>
-
-    <!-- 다운받은 아카콘들 -->
-    <div id="conWrap"></div>
 
     <!-- 서버 토큰발급 -->
     <!-- <script src="js/auth.js"></script> -->
