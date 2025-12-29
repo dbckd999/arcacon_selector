@@ -239,7 +239,6 @@ document.querySelector('div.reply-form-button-container').prepend(button);
 
 let cmtSelected = '';
 function selectFormSelect() {
-
   // 대댓글 선택을 하려면 답글 옆에 선택 버튼을 만들어 둬야한다.
   const commentRights = document.querySelectorAll('div.comment-item');
   commentRights.forEach((r) => {
