@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="kr" class="sl-theme-dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="shoelace/themes/dark.css" />
     <script type="module" src="shoelace/shoelace.js"></script>
     <title>앱 설정</title>
@@ -10,7 +10,7 @@
       body {
         padding: 2rem;
       }
-      
+
       .container {
         max-width: 960px;
         margin: 0 auto;
@@ -29,42 +29,64 @@
         margin-bottom: 1.5rem;
       }
 
-      sl-input, sl-range, sl-switch {
+      sl-input,
+      sl-range,
+      sl-switch {
         margin-bottom: 1.5rem;
       }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>설정</h1>
-        <sl-divider></sl-divider>
-        <sl-tab-group placement="start">
-            <sl-tab slot="nav" panel="general">일반</sl-tab>
-            <sl-tab slot="nav" panel="appearance">모양</sl-tab>
-            <sl-tab slot="nav" panel="data">데이터 관리</sl-tab>
-      
-            <sl-tab-panel name="general">
-              <h2>일반 설정</h2>
-              <h4>대기화면</h4>
-              <sl-switch data-setting="isSleep" name="sleepEnable">활성</sl-switch>
-              <sl-input data-setting="sleepTime" label="가리기 지연시간" type="number" size="small" value="-1" help-text="단위: 밀리초(ms)"></sl-input>
-              <sl-range data-setting="sleepOpacity" label="투명도" min="0" max="1" step="0.01"></sl-range>
-            </sl-tab-panel>
+      <h1>설정</h1>
+      <sl-divider></sl-divider>
+      <sl-tab-group placement="start">
+        <sl-tab slot="nav" panel="general">일반</sl-tab>
+        <sl-tab slot="nav" panel="appearance">모양</sl-tab>
+        <sl-tab slot="nav" panel="data">데이터 관리</sl-tab>
 
-            <sl-tab-panel name="appearance">
-              <h2>모양 설정</h2>
-              <h4>아카콘 크기</h4>
-              <sl-input data-setting="conSize" type="number" size="small" value="10" help-text="단위: 픽셀(px)"></sl-input>
-            </sl-tab-panel>
+        <sl-tab-panel name="general">
+          <h2>일반 설정</h2>
+          <h4>대기화면</h4>
+          <sl-switch data-setting="isSleep" name="sleepEnable">활성</sl-switch>
+          <sl-input
+            data-setting="sleepTime"
+            label="가리기 지연시간"
+            type="number"
+            size="small"
+            value="-1"
+            help-text="단위: 밀리초(ms)"
+          ></sl-input>
+          <sl-range
+            data-setting="sleepOpacity"
+            label="투명도"
+            min="0"
+            max="1"
+            step="0.01"
+          ></sl-range>
+        </sl-tab-panel>
 
-            <sl-tab-panel name="data">
-                <h2>데이터 관리</h2>
-                <sl-button variant="primary">가져오기</sl-button>
-                <sl-button variant="primary">내보내기</sl-button>
-                <sl-divider style="margin: 1.5rem 0;"></sl-divider>
-                <sl-button variant="danger">모든 데이터 삭제</sl-button>
-            </sl-tab-panel>
-          </sl-tab-group>
+        <sl-tab-panel name="appearance">
+          <h2>모양 설정</h2>
+          <h4>아카콘 크기</h4>
+          <sl-input
+            data-setting="conSize"
+            type="number"
+            size="small"
+            value="10"
+            help-text="단위: 픽셀(px)"
+          ></sl-input>
+        </sl-tab-panel>
+
+        <sl-tab-panel name="data">
+          <h2>데이터 관리</h2>
+          <sl-button variant="primary">가져오기</sl-button>
+          <sl-button variant="primary">내보내기</sl-button>
+          <sl-divider style="margin: 1.5rem 0"></sl-divider>
+          <sl-button variant="danger">모든 데이터 삭제</sl-button>
+        </sl-tab-panel>
+      </sl-tab-group>
     </div>
-</body>
-</html>l
+  </body>
+</html>
+l

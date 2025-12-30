@@ -1,0 +1,28 @@
+.fortags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.conWarpper {
+  width: 100px;
+  position: relative;
+}
+
+.tag-area {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+}
+
+.tag-input-wrapper {
+  display: flex;
+}
+.hidden {
+  display: none !important;
+}
+
+.testi:invalid {
+  background-color: lightpink;
+}

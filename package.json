@@ -4,11 +4,13 @@
   "description": "My Chrome Extension",
   "private": true,
   "scripts": {
-    "watch": "webpack --mode=development --watch --config config/webpack.config.js",
-    "build": "webpack --mode=production --config config/webpack.config.js",
-    "pack": "node pack.js",
-    "repack": "npm run build && npm run pack",
-    "format": "prettier --write --ignore-unknown \"{config,public,src}/**/*.{html,css,js,ts,json}\""
+    "watch": "webpack --mode=development --config config/webpack.config.js --env target=chrome",
+    "build": "webpack --mode=production --config config/webpack.config.js --env target=chrome && node pack.js --target=chrome",
+    "watchf": "webpack --mode=development --config config/webpack.config.js --env target=firefox",
+    "buildf": "webpack --mode=production --config config/webpack.config.js --env target=firefox && node pack.js --target=firefox",
+    "format": "prettier --write \"{config,public,chrome/src,firefox/src}/**/*.{html,css,js,ts,json}\"",
+    "firefox": "web-ext run --devtools --source-dir=firefox/build",
+    "chrome": "web-ext run --devtools --source-dir=chrome/build --target=chromium"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.27",
@@ -19,12 +21,14 @@
     "mini-css-extract-plugin": "^2.9.4",
     "prettier": "^2.8.8",
     "ts-loader": "^9.5.4",
+    "web-ext": "^9.2.0",
     "webpack": "^5.102.1",
     "webpack-cli": "^4.10.0",
     "webpack-merge": "^5.10.0"
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.20.1",
+    "@types/firefox-webext-browser": "^143.0.0",
     "@uppy/core": "^5.1.1",
     "@uppy/dashboard": "^5.0.4",
     "@uppy/drag-drop": "^5.0.2",

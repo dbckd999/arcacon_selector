@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "arcacon_selector@yc.dev",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "name": "Arcacon_selector",
+  "version": "0.1.11",
+  "description": "아카콘 선택을 편리하게 합니다.",
+  "icons": {
+    "16": "icons/icon_16.png",
+    "32": "icons/icon_32.png",
+    "48": "icons/icon_48.png",
+    "128": "icons/icon_128.png"
+  },
+  "sidebar_action": {
+    "default_icon": {
+      "16": "icons/icon_16.png",
+      "32": "icons/icon_32.png",
+      "48": "icons/icon_48.png"
+    },
+    "default_title": "My sidebar",
+    "default_panel": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://arca.live/b/*/*"],
+      "js": ["board-content-script.js"],
+      "css": ["board-content-script.css"],
+      "exclude_matches": ["https://arca.live/b/*/*/*"]
+    },
+    {
+      "matches": ["https://arca.live/e/*"],
+      "css": ["sale-content-script.css"],
+      "js": ["sale-content-script.js"]
+    },
+    {
+      "matches": ["https://arca.live/settings/emoticons"],
+      "js": ["order-content-script.js"]
+    }
+  ],
+  "action": {
+    "default_title": "Arcacon_selector"
+  },
+  "permissions": ["tabs", "storage", "downloads", "contextMenus"],
+  "host_permissions": ["https://ac-p1.namu.la/"]
+}
